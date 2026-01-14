@@ -1,0 +1,156 @@
+{
+  "nav": {
+    "home": "Ana Sayfa",
+    "portfolio": "Portföy",
+    "services": "Hizmetler",
+    "contact": "İletişim"
+  },
+  "home": {
+    "hero": {
+      "title": "Sonuç Getiren Modern Web Tasarımı",
+      "subtitle": "Kanadalı işletmelerin online büyümesine yardımcı olan hızlı, güzel ve özel web siteleri oluşturuyoruz.",
+      "ctaPrimary": "Teklif Al",
+      "ctaSecondary": "Çalışmalarımızı Gör"
+    },
+    "services": {
+      "title": "Neler Sunuyoruz",
+      "subtitle": "İşletmeniz için kapsamlı dijital çözümler",
+      "webDesign": {
+        "title": "Web Tasarımı",
+        "description": "Markanıza ve hedef kitlenize özel, modern web siteleri."
+      },
+      "uiux": {
+        "title": "UI/UX Tasarımı",
+        "description": "Etkileşimi ve dönüşümleri artıran kullanıcı odaklı tasarım."
+      },
+      "development": {
+        "title": "Özel Geliştirme",
+        "description": "En son teknoloji ile inşa edilmiş ölçeklenebilir, performanslı web uygulamaları."
+      },
+      "optimization": {
+        "title": "Performans Optimizasyonu",
+        "description": "Daha yüksek sıralama ve daha iyi dönüşüm sağlayan yıldırım hızında web siteleri."
+      }
+    },
+    "featuredPortfolio": {
+      "title": "Öne Çıkan Çalışmalar",
+      "subtitle": "Son projelerimizden bir bakış",
+      "viewAll": "Tüm Projeleri Görüntüle"
+    },
+    "whyFindPoint": {
+      "title": "Neden FindPoint?",
+      "subtitle": "Kanada dijital ortamında bizi farklı kılan şey",
+      "canada": {
+        "title": "Kanada Merkezli",
+        "description": "Gururla Kanadalı, yerel işletme ihtiyaçlarını ve pazar dinamiklerini anlıyoruz."
+      },
+      "fast": {
+        "title": "Hızlı Teslimat",
+        "description": "Verimli iş akışları ve modern araçlar hızlı teslimat süreleri sağlar."
+      },
+      "modern": {
+        "title": "Modern Teknoloji",
+        "description": "Performans ve ölçeklenebilirlik için en son teknolojilerle inşa edilmiştir."
+      },
+      "clientFocused": {
+        "title": "Müşteri Odaklı",
+        "description": "Başarınız bizim önceliğimiz. Her adımda sizinle yakın çalışıyoruz."
+      }
+    },
+    "cta": {
+      "title": "Online Varlığınızı Dönüştürmeye Hazır mısınız?",
+      "description": "İşletmenizin online başarısına nasıl yardımcı olabileceğimizi tartışalım.",
+      "button": "Bugün Bize Ulaşın"
+    }
+  },
+  "portfolio": {
+    "title": "Çalışmalarımız",
+    "subtitle": "Web tasarımı ve geliştirmede mükemmellik sergileme",
+    "viewProject": "Projeyi Görüntüle",
+    "technologies": "Teknolojiler"
+  },
+  "services": {
+    "title": "Hizmetlerimiz",
+    "subtitle": "Kanadalı işletmeler için özel olarak hazırlanmış kapsamlı dijital çözümler",
+    "webDesign": {
+      "title": "Web Tasarımı",
+      "description": "Marka kimliğinizi yansıtan ve hedef kitlenizi etkileyen çarpıcı, özel web siteleri oluşturuyoruz. Tasarımlarımız modern, duyarlı ve dönüşümler için optimize edilmiştir.",
+      "image": "/uploads/services/services-1768360692616-c4mu0rxndmv.png",
+      "features": [
+        "Markanıza özel özel tasarım",
+        "Tüm cihazlarda tamamen duyarlı",
+        "SEO optimize yapı",
+        "Hızlı yükleme süreleri",
+        "Erişilebilirlik uyumlu"
+      ]
+    },
+    "uiux": {
+      "title": "UI/UX Tasarımı",
+      "description": "Kullanıcı deneyimi yaptığımız her şeyin merkezindedir. Kullanıcıları dijital yolculuğunuzda sorunsuz bir şekilde yönlendiren sezgisel arayüzler tasarlıyoruz.",
+      "image": "https://microdeft.com/wp-content/uploads/2022/10/App-UI-UX-Design-Service-2048x1365.jpg",
+      "features": [
+        "Kullanıcı araştırması ve analizi",
+        "Wireframing ve prototipleme",
+        "İnteraktif tasarım sistemleri",
+        "Kullanılabilirlik testleri",
+        "Dönüşüm optimizasyonu"
+      ]
+    },
+    "development": {
+      "title": "Özel Geliştirme",
+      "description": "Basit web sitelerinden karmaşık web uygulamalarına kadar, en son teknolojiler ve en iyi uygulamaları kullanarak ölçeklenebilir çözümler inşa ediyoruz.",
+      "image": "https://digital4business.eu/wp-content/uploads/2023/08/Untitled-design-56.jpg",
+      "features": [
+        "Modern teknoloji yığını (Next.js, React, TypeScript)",
+        "Ölçeklenebilir mimari",
+        "API entegrasyonu",
+        "Veritabanı tasarımı",
+        "Devam eden bakım ve destek"
+      ]
+    },
+    "optimization": {
+      "title": "Performans Optimizasyonu",
+      "description": "Hız önemlidir. Web sitenizi en yüksek performans için optimize ediyoruz, hızlı yükleme süreleri ve mükemmel kullanıcı deneyimi sağlıyoruz.",
+      "image": "https://adampetrilli.com/wp-content/uploads/2022/02/iStock-1322817857-1536x1024-2.jpg.webp",
+      "features": [
+        "Sayfa hızı optimizasyonu",
+        "Core Web Vitals iyileştirmesi",
+        "Görüntü ve varlık optimizasyonu",
+        "Önbelleğe alma stratejileri",
+        "Performans izleme"
+      ]
+    },
+    "cta": {
+      "title": "Hizmetlerimizle İlgileniyor musunuz?",
+      "description": "Projenizi tartışmak ve özel bir teklif almak için bizimle iletişime geçin.",
+      "button": "Teklif Al"
+    }
+  },
+  "contact": {
+    "title": "İletişime Geçin",
+    "subtitle": "Projenizi tartışalım ve nasıl yardımcı olabileceğimizi görelim",
+    "form": {
+      "name": "Ad",
+      "email": "E-posta",
+      "message": "Mesaj",
+      "submit": "Mesaj Gönder",
+      "sending": "Gönderiliyor...",
+      "success": "Teşekkürler! En kısa sürede size dönüş yapacağız.",
+      "error": "Bir şeyler yanlış gitti. Lütfen tekrar deneyin."
+    },
+    "info": {
+      "location": "Kanada'da Konumlanmış",
+      "response": "Genellikle 1 saat içinde yanıt veriyoruz",
+      "phone": "Dilerseniz +1 438 596 85 66 numarasından bize ulaşabilirsiniz"
+    }
+  },
+  "footer": {
+    "description": "FindPoint - Kanadalı işletmeler için modern web tasarımı ve geliştirme.",
+    "links": {
+      "portfolio": "Portföy",
+      "services": "Hizmetler",
+      "contact": "İletişim"
+    },
+    "rights": "Tüm hakları saklıdır."
+  }
+}

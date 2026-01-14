@@ -1,0 +1,156 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "portfolio": "Portfolio",
+    "services": "Services",
+    "contact": "Contact"
+  },
+  "home": {
+    "hero": {
+      "title": "Design Web Moderne Qui Génère des Résultats",
+      "subtitle": "Nous créons des sites web rapides, beaux et personnalisés qui aident les entreprises canadiennes à croître en ligne.",
+      "ctaPrimary": "Obtenir un Devis",
+      "ctaSecondary": "Voir Nos Réalisations"
+    },
+    "services": {
+      "title": "Ce Que Nous Offrons",
+      "subtitle": "Solutions numériques complètes pour votre entreprise",
+      "webDesign": {
+        "title": "Design Web",
+        "description": "Sites web personnalisés et modernes adaptés à votre marque et à votre public."
+      },
+      "uiux": {
+        "title": "Design UI/UX",
+        "description": "Design centré sur l'utilisateur qui améliore l'engagement et les conversions."
+      },
+      "development": {
+        "title": "Développement Personnalisé",
+        "description": "Applications web performantes et évolutives construites avec une technologie de pointe."
+      },
+      "optimization": {
+        "title": "Optimisation des Performances",
+        "description": "Sites web ultra-rapides qui se classent mieux et convertissent davantage."
+      }
+    },
+    "featuredPortfolio": {
+      "title": "Nos Projets en Vedette",
+      "subtitle": "Un aperçu de nos projets récents",
+      "viewAll": "Voir Tous les Projets"
+    },
+    "whyFindPoint": {
+      "title": "Pourquoi FindPoint?",
+      "subtitle": "Ce qui nous distingue dans le paysage numérique canadien",
+      "canada": {
+        "title": "Basé au Canada",
+        "description": "Fièrement canadien, comprenant les besoins des entreprises locales et la dynamique du marché."
+      },
+      "fast": {
+        "title": "Livraison Rapide",
+        "description": "Des flux de travail efficaces et des outils modernes garantissent des délais de livraison rapides."
+      },
+      "modern": {
+        "title": "Technologie Moderne",
+        "description": "Construit avec des technologies de pointe pour la performance et l'évolutivité."
+      },
+      "clientFocused": {
+        "title": "Centré sur le Client",
+        "description": "Votre succès est notre priorité. Nous travaillons en étroite collaboration avec vous à chaque étape."
+      }
+    },
+    "cta": {
+      "title": "Prêt à Transformer Votre Présence En Ligne?",
+      "description": "Discutons de la façon dont nous pouvons aider votre entreprise à réussir en ligne.",
+      "button": "Contactez-Nous Aujourd'hui"
+    }
+  },
+  "portfolio": {
+    "title": "Nos Réalisations",
+    "subtitle": "Excellence en design web et développement",
+    "viewProject": "Voir le Projet",
+    "technologies": "Technologies"
+  },
+  "services": {
+    "title": "Nos Services",
+    "subtitle": "Solutions numériques complètes adaptées aux entreprises canadiennes",
+    "webDesign": {
+      "title": "Design Web",
+      "description": "Nous créons des sites web magnifiques et personnalisés qui reflètent l'identité de votre marque et engagent votre public. Nos designs sont modernes, réactifs et optimisés pour les conversions.",
+      "image": "/uploads/services/services-1768360692616-c4mu0rxndmv.png",
+      "features": [
+        "Design personnalisé adapté à votre marque",
+        "Entièrement réactif sur tous les appareils",
+        "Structure optimisée pour le SEO",
+        "Temps de chargement rapides",
+        "Conforme à l'accessibilité"
+      ]
+    },
+    "uiux": {
+      "title": "Design UI/UX",
+      "description": "L'expérience utilisateur est au cœur de tout ce que nous faisons. Nous concevons des interfaces intuitives qui guident les utilisateurs en douceur dans votre parcours numérique.",
+      "image": "https://microdeft.com/wp-content/uploads/2022/10/App-UI-UX-Design-Service-2048x1365.jpg",
+      "features": [
+        "Recherche et analyse utilisateur",
+        "Wireframing et prototypage",
+        "Systèmes de design interactifs",
+        "Tests d'utilisabilité",
+        "Optimisation des conversions"
+      ]
+    },
+    "development": {
+      "title": "Développement Personnalisé",
+      "description": "Des sites web simples aux applications web complexes, nous construisons des solutions évolutives en utilisant les dernières technologies et les meilleures pratiques.",
+      "image": "https://digital4business.eu/wp-content/uploads/2023/08/Untitled-design-56.jpg",
+      "features": [
+        "Stack technologique moderne (Next.js, React, TypeScript)",
+        "Architecture évolutive",
+        "Intégration API",
+        "Conception de base de données",
+        "Maintenance et support continus"
+      ]
+    },
+    "optimization": {
+      "title": "Optimisation des Performances",
+      "description": "La vitesse compte. Nous optimisons votre site web pour des performances maximales, garantissant des temps de chargement rapides et une excellente expérience utilisateur.",
+      "image": "https://adampetrilli.com/wp-content/uploads/2022/02/iStock-1322817857-1536x1024-2.jpg.webp",
+      "features": [
+        "Optimisation de la vitesse de page",
+        "Amélioration des Core Web Vitals",
+        "Optimisation des images et des ressources",
+        "Stratégies de mise en cache",
+        "Surveillance des performances"
+      ]
+    },
+    "cta": {
+      "title": "Intéressé par Nos Services?",
+      "description": "Contactez-nous pour discuter de votre projet et recevoir un devis personnalisé.",
+      "button": "Obtenir un Devis"
+    }
+  },
+  "contact": {
+    "title": "Contactez-Nous",
+    "subtitle": "Discutons de votre projet et voyons comment nous pouvons vous aider",
+    "form": {
+      "name": "Nom",
+      "email": "Courriel",
+      "message": "Message",
+      "submit": "Envoyer le Message",
+      "sending": "Envoi en cours...",
+      "success": "Merci! Nous vous répondrons bientôt.",
+      "error": "Une erreur s'est produite. Veuillez réessayer."
+    },
+    "info": {
+      "location": "Basé au Canada",
+      "response": "Nous répondons généralement dans 1 heure",
+      "phone": "Vous pouvez également nous joindre au +1 438 596 85 66"
+    }
+  },
+  "footer": {
+    "description": "FindPoint - Design web moderne et développement pour les entreprises canadiennes.",
+    "links": {
+      "portfolio": "Portfolio",
+      "services": "Services",
+      "contact": "Contact"
+    },
+    "rights": "Tous droits réservés."
+  }
+}

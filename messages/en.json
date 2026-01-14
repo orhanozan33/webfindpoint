@@ -1,0 +1,156 @@
+{
+  "nav": {
+    "home": "Home",
+    "portfolio": "Portfolio",
+    "services": "Services",
+    "contact": "Contact"
+  },
+  "home": {
+    "hero": {
+      "title": "Modern Web Design That Drives Results",
+      "subtitle": "We create fast, beautiful, and custom websites that help Canadian businesses grow online.",
+      "ctaPrimary": "Get a Quote",
+      "ctaSecondary": "View Our Work"
+    },
+    "services": {
+      "title": "What We Offer",
+      "subtitle": "Comprehensive digital solutions for your business",
+      "webDesign": {
+        "title": "Web Design",
+        "description": "Custom, modern websites tailored to your brand and audience."
+      },
+      "uiux": {
+        "title": "UI/UX Design",
+        "description": "User-centered design that enhances engagement and conversions."
+      },
+      "development": {
+        "title": "Custom Development",
+        "description": "Scalable, performant web applications built with cutting-edge technology."
+      },
+      "optimization": {
+        "title": "Performance Optimization",
+        "description": "Lightning-fast websites that rank higher and convert better."
+      }
+    },
+    "featuredPortfolio": {
+      "title": "Featured Work",
+      "subtitle": "A glimpse of our recent projects",
+      "viewAll": "View All Projects"
+    },
+    "whyFindPoint": {
+      "title": "Why FindPoint?",
+      "subtitle": "What sets us apart in the Canadian digital landscape",
+      "canada": {
+        "title": "Canada-Based",
+        "description": "Proudly Canadian, understanding local business needs and market dynamics."
+      },
+      "fast": {
+        "title": "Fast Delivery",
+        "description": "Efficient workflows and modern tools ensure quick turnaround times."
+      },
+      "modern": {
+        "title": "Modern Tech",
+        "description": "Built with cutting-edge technologies for performance and scalability."
+      },
+      "clientFocused": {
+        "title": "Client-Focused",
+        "description": "Your success is our priority. We work closely with you every step of the way."
+      }
+    },
+    "cta": {
+      "title": "Ready to Transform Your Online Presence?",
+      "description": "Let's discuss how we can help your business succeed online.",
+      "button": "Contact Us Today"
+    }
+  },
+  "portfolio": {
+    "title": "Our Work",
+    "subtitle": "Showcasing excellence in web design and development",
+    "viewProject": "View Project",
+    "technologies": "Technologies"
+  },
+  "services": {
+    "title": "Our Services",
+    "subtitle": "Comprehensive digital solutions tailored for Canadian businesses",
+    "webDesign": {
+      "title": "Web Design",
+      "description": "We create stunning, custom websites that reflect your brand identity and engage your audience. Our designs are modern, responsive, and optimized for conversions.",
+      "image": "/uploads/services/services-1768360692616-c4mu0rxndmv.png",
+      "features": [
+        "Custom design tailored to your brand",
+        "Fully responsive across all devices",
+        "SEO-optimized structure",
+        "Fast loading times",
+        "Accessibility compliant"
+      ]
+    },
+    "uiux": {
+      "title": "UI/UX Design",
+      "description": "User experience is at the heart of everything we do. We design intuitive interfaces that guide users seamlessly through your digital journey.",
+      "image": "https://microdeft.com/wp-content/uploads/2022/10/App-UI-UX-Design-Service-2048x1365.jpg",
+      "features": [
+        "User research and analysis",
+        "Wireframing and prototyping",
+        "Interactive design systems",
+        "Usability testing",
+        "Conversion optimization"
+      ]
+    },
+    "development": {
+      "title": "Custom Development",
+      "description": "From simple websites to complex web applications, we build scalable solutions using the latest technologies and best practices.",
+      "image": "https://digital4business.eu/wp-content/uploads/2023/08/Untitled-design-56.jpg",
+      "features": [
+        "Modern tech stack (Next.js, React, TypeScript)",
+        "Scalable architecture",
+        "API integration",
+        "Database design",
+        "Ongoing maintenance and support"
+      ]
+    },
+    "optimization": {
+      "title": "Performance Optimization",
+      "description": "Speed matters. We optimize your website for peak performance, ensuring fast load times and excellent user experience.",
+      "image": "https://adampetrilli.com/wp-content/uploads/2022/02/iStock-1322817857-1536x1024-2.jpg.webp",
+      "features": [
+        "Page speed optimization",
+        "Core Web Vitals improvement",
+        "Image and asset optimization",
+        "Caching strategies",
+        "Performance monitoring"
+      ]
+    },
+    "cta": {
+      "title": "Interested in Our Services?",
+      "description": "Get in touch to discuss your project and receive a custom quote.",
+      "button": "Get a Quote"
+    }
+  },
+  "contact": {
+    "title": "Get In Touch",
+    "subtitle": "Let's discuss your project and see how we can help",
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "message": "Message",
+      "submit": "Send Message",
+      "sending": "Sending...",
+      "success": "Thank you! We'll get back to you soon.",
+      "error": "Something went wrong. Please try again."
+    },
+    "info": {
+      "location": "Based in Canada",
+      "response": "We typically respond within 1 hour",
+      "phone": "You can also reach us at +1 438 596 85 66"
+    }
+  },
+  "footer": {
+    "description": "FindPoint - Modern web design and development for Canadian businesses.",
+    "links": {
+      "portfolio": "Portfolio",
+      "services": "Services",
+      "contact": "Contact"
+    },
+    "rights": "All rights reserved."
+  }
+}
