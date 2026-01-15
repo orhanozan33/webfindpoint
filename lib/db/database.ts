@@ -130,6 +130,16 @@ export async function initializeDatabase() {
     if (!AppDataSource.isInitialized) {
       try {
         await AppDataSource.initialize()
+        
+        // Log successful initialization with table count
+        if (process.env.NODE_ENV === 'development' || process.env.DB_SYNC === 'true') {
+          const tableCount = AppDataSource.entityMetadatas.length
+          console.log(`✅ Database initialized successfully with ${tableCount} entities`)
+          
+          if (process.env.DB_SYNC === 'true') {
+            console.log('📊 Tables will be auto-created on first connection')
+          }
+        }
       } catch (error: any) {
         // If connection fails, log error but don't crash during build
         if (process.env.NEXT_PHASE === 'phase-production-build') {
