@@ -64,14 +64,21 @@ export function PaymentForm({ payment, projects }: PaymentFormProps) {
         body: JSON.stringify(payload),
       })
 
-      if (response.ok) {
+      if (response.ok || response.status === 201) {
         router.push('/admin/payments')
         router.refresh()
       } else {
-        const data = await response.json()
-        setError(data.error || 'Ödeme kaydedilemedi')
+        try {
+          const data = await response.json()
+          console.error('Payment form error:', data)
+          setError(data.error || 'Ödeme kaydedilemedi')
+        } catch (parseError) {
+          console.error('Payment form error (no JSON body):', response.status, response.statusText)
+          setError(`Ödeme kaydedilemedi: ${response.status} ${response.statusText}`)
+        }
       }
     } catch (err) {
+      console.error('Payment form network error:', err)
       setError('Bir hata oluştu. Lütfen tekrar deneyin.')
     } finally {
       setLoading(false)

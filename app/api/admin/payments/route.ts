@@ -41,9 +41,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { projectId, amount, currency, status, paymentDate, notes } = body
 
-    if (!projectId || !amount) {
+    if (!projectId) {
       return NextResponse.json(
-        { error: 'Proje ve tutar gereklidir' },
+        { error: 'Proje seçilmelidir' },
+        { status: 400 }
+      )
+    }
+
+    if (!amount || amount === '' || amount === null || amount === undefined) {
+      return NextResponse.json(
+        { error: 'Tutar gereklidir' },
+        { status: 400 }
+      )
+    }
+
+    const parsedAmount = parseFloat(amount)
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      return NextResponse.json(
+        { error: 'Geçerli bir tutar giriniz (0\'dan büyük olmalıdır)' },
         { status: 400 }
       )
     }
@@ -108,7 +123,7 @@ export async function POST(request: NextRequest) {
     const payment = paymentRepository.create({
       agencyId: finalAgencyId!,
       projectId,
-      amount: parseFloat(amount),
+      amount: parsedAmount,
       currency: currency || 'CAD',
       status: status || 'unpaid',
       paymentDate: paymentDate ? new Date(paymentDate) : undefined,
@@ -118,11 +133,35 @@ export async function POST(request: NextRequest) {
     await paymentRepository.save(payment)
 
     return NextResponse.json(payment, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating payment:', error)
+    console.error('Error details:', {
+      message: error?.message,
+      code: error?.code,
+      name: error?.name,
+      constraint: error?.constraint,
+      detail: error?.detail,
+      table: error?.table,
+      stack: error?.stack?.substring(0, 500)
+    })
+    
+    // Check for specific database constraint errors
+    if (error?.code === '23503' || error?.constraint) {
       return NextResponse.json(
-        { error: 'Ödeme oluşturulamadı' },
+        { 
+          error: 'Ödeme oluşturulamadı: Geçersiz proje veya bağlantı hatası',
+          details: process.env.NODE_ENV === 'development' ? `Constraint: ${error.constraint}, Table: ${error.table}` : undefined
+        },
         { status: 500 }
       )
+    }
+    
+    return NextResponse.json(
+      { 
+        error: 'Ödeme oluşturulamadı',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
+      { status: 500 }
+    )
   }
 }
