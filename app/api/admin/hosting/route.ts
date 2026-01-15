@@ -102,27 +102,75 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const hosting = hostingRepository.create({
+    // Create hosting service using insert to avoid loading relations and cyclic dependency
+    const insertData: any = {
       agencyId: finalAgencyId,
       provider,
-      plan,
       startDate: new Date(startDate),
-      endDate: endDate ? new Date(endDate) : undefined,
       autoRenew: autoRenew || false,
-      monthlyCost: monthlyCost ? parseFloat(monthlyCost) : undefined,
       currency: currency || 'CAD',
-      notes,
-      projectId: projectId || undefined,
+    }
+    
+    if (plan) {
+      insertData.plan = plan
+    }
+    if (endDate) {
+      insertData.endDate = new Date(endDate)
+    }
+    if (monthlyCost) {
+      insertData.monthlyCost = parseFloat(monthlyCost)
+    }
+    if (notes) {
+      insertData.notes = notes
+    }
+    if (projectId) {
+      insertData.projectId = projectId
+    }
+    
+    const insertResult = await hostingRepository.insert(insertData)
+
+    const hostingId = insertResult.identifiers[0].id
+
+    // Fetch the created hosting service without relations to avoid cyclic dependency
+    const hosting = await hostingRepository.findOne({
+      where: { id: hostingId },
+      select: ['id', 'agencyId', 'provider', 'plan', 'startDate', 'endDate', 'autoRenew', 'monthlyCost', 'currency', 'notes', 'projectId', 'createdAt', 'updatedAt'],
     })
 
-    await hostingRepository.save(hosting)
+    if (!hosting) {
+      throw new Error('Hosting service was created but could not be retrieved')
+    }
 
     return NextResponse.json(hosting, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating hosting service:', error)
+    console.error('Error details:', {
+      message: error?.message,
+      code: error?.code,
+      name: error?.name,
+      constraint: error?.constraint,
+      detail: error?.detail,
+      table: error?.table,
+      stack: error?.stack?.substring(0, 500)
+    })
+    
+    // Check for specific database constraint errors
+    if (error?.code === '23503' || error?.constraint) {
       return NextResponse.json(
-        { error: 'Hosting hizmeti oluşturulamadı' },
+        { 
+          error: 'Hosting hizmeti oluşturulamadı: Geçersiz proje veya bağlantı hatası',
+          details: process.env.NODE_ENV === 'development' ? `Constraint: ${error.constraint}, Table: ${error.table}` : undefined
+        },
         { status: 500 }
       )
+    }
+    
+    return NextResponse.json(
+      { 
+        error: 'Hosting hizmeti oluşturulamadı',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
+      { status: 500 }
+    )
   }
 }
