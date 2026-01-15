@@ -2,6 +2,9 @@ import { initializeDatabase } from '@/lib/db/database'
 import { Project } from '@/entities/Project'
 import { HostingForm } from '@/components/admin/HostingForm'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 export default async function NewHostingPage() {
   let projects: any[] = []
   

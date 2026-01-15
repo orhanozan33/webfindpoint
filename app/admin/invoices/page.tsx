@@ -1,13 +1,16 @@
 import { initializeDatabase } from '@/lib/db/database'
 import { Invoice } from '@/entities/Invoice'
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 import Link from 'next/link'
 import { getSession } from '@/lib/auth/session'
 import { hasPermission } from '@/lib/auth/roles'
 import { redirect } from 'next/navigation'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 // Dynamic import to prevent useContext errors
-const InvoicesList = dynamic(() => import('@/components/admin/InvoicesList').then((mod) => ({ default: mod.InvoicesList })), {
+const InvoicesList = dynamicImport(() => import('@/components/admin/InvoicesList').then((mod) => ({ default: mod.InvoicesList })), {
   ssr: false,
   loading: () => (
     <div className="bg-white rounded-xl p-12 border border-neutral-200 text-center">

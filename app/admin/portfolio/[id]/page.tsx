@@ -3,6 +3,9 @@ import { Portfolio } from '@/entities/Portfolio'
 import { notFound } from 'next/navigation'
 import { PortfolioForm } from '@/components/admin/PortfolioForm'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 export default async function PortfolioEditPage({
   params,
 }: {

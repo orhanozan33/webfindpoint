@@ -1,10 +1,13 @@
 import { initializeDatabase } from '@/lib/db/database'
 import { Project } from '@/entities/Project'
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 import Link from 'next/link'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 // Dynamic import to prevent useContext errors
-const ProjectsList = dynamic(() => import('@/components/admin/ProjectsList').then((mod) => ({ default: mod.ProjectsList })), {
+const ProjectsList = dynamicImport(() => import('@/components/admin/ProjectsList').then((mod) => ({ default: mod.ProjectsList })), {
   ssr: false,
   loading: () => (
     <div className="bg-white rounded-xl p-12 border border-neutral-200 text-center">

@@ -1,5 +1,8 @@
 import { ClientForm } from '@/components/admin/ClientForm'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 export default function NewClientPage() {
   return (
     <div className="space-y-6">

@@ -3,6 +3,9 @@ import { Client } from '@/entities/Client'
 import { notFound } from 'next/navigation'
 import { ClientForm } from '@/components/admin/ClientForm'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 export default async function ClientEditPage({
   params,
 }: {

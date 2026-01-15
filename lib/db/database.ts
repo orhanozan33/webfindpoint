@@ -74,9 +74,31 @@ let isInitialized = false
 
 // Initialize connection (call this in your API routes or server components)
 export async function initializeDatabase() {
+  // Skip database initialization during build time
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    throw new Error('Database initialization skipped during build')
+  }
+
+  // Check if environment variables are set
+  if (!process.env.DB_HOST || process.env.DB_HOST === 'localhost') {
+    // In development, allow localhost but warn
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️  Warning: DB_HOST is localhost. Make sure your .env file is configured correctly.')
+    }
+  }
+
   if (!isInitialized) {
     if (!AppDataSource.isInitialized) {
-      await AppDataSource.initialize()
+      try {
+        await AppDataSource.initialize()
+      } catch (error: any) {
+        // If connection fails, log error but don't crash during build
+        if (process.env.NEXT_PHASE === 'phase-production-build') {
+          console.warn('Database connection skipped during build:', error.message)
+          throw new Error('Database connection skipped during build')
+        }
+        throw error
+      }
     }
     isInitialized = true
   }

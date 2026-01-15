@@ -1,10 +1,13 @@
 import { initializeDatabase } from '@/lib/db/database'
 import { HostingService } from '@/entities/HostingService'
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 import Link from 'next/link'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 // Dynamic import to prevent useContext errors
-const HostingList = dynamic(() => import('@/components/admin/HostingList').then((mod) => ({ default: mod.HostingList })), {
+const HostingList = dynamicImport(() => import('@/components/admin/HostingList').then((mod) => ({ default: mod.HostingList })), {
   ssr: false,
   loading: () => (
     <div className="bg-white rounded-xl p-12 border border-neutral-200 text-center">

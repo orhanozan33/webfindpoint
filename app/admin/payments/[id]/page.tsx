@@ -4,6 +4,9 @@ import { Project } from '@/entities/Project'
 import { notFound } from 'next/navigation'
 import { PaymentForm } from '@/components/admin/PaymentForm'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 export default async function PaymentEditPage({
   params,
 }: {

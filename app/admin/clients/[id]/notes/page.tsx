@@ -6,6 +6,9 @@ import { ClientNotesView } from '@/components/admin/ClientNotesView'
 import { getSession } from '@/lib/auth/session'
 import { redirect } from 'next/navigation'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 export default async function ClientNotesPage({
   params,
 }: {

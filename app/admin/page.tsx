@@ -12,6 +12,9 @@ import { RecentActivity } from '@/components/admin/RecentActivity'
 import { NotificationPreview } from '@/components/admin/NotificationPreview'
 import { getAgencyContext, scopeToAgency } from '@/lib/multi-tenant/scope'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 export default async function AdminDashboard() {
   const session = await getSession()
 

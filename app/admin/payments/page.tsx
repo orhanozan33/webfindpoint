@@ -1,10 +1,13 @@
 import { initializeDatabase } from '@/lib/db/database'
 import { Payment } from '@/entities/Payment'
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 import Link from 'next/link'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 // Dynamic import to prevent useContext errors
-const PaymentsList = dynamic(() => import('@/components/admin/PaymentsList').then((mod) => ({ default: mod.PaymentsList })), {
+const PaymentsList = dynamicImport(() => import('@/components/admin/PaymentsList').then((mod) => ({ default: mod.PaymentsList })), {
   ssr: false,
   loading: () => (
     <div className="bg-white rounded-xl p-12 border border-neutral-200 text-center">

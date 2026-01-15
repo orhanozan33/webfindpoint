@@ -1,10 +1,13 @@
 import { initializeDatabase } from '@/lib/db/database'
 import { Portfolio } from '@/entities/Portfolio'
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 import Link from 'next/link'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 // Dynamic import to prevent useContext errors
-const PortfolioList = dynamic(() => import('@/components/admin/PortfolioList').then((mod) => ({ default: mod.PortfolioList })), {
+const PortfolioList = dynamicImport(() => import('@/components/admin/PortfolioList').then((mod) => ({ default: mod.PortfolioList })), {
   ssr: false,
   loading: () => (
     <div className="bg-white rounded-xl p-12 border border-neutral-200 text-center">
