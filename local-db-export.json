@@ -1,0 +1,180 @@
+{
+  "exportedAt": "2026-01-15T04:33:07.156Z",
+  "tables": {
+    "agencies": [
+      {
+        "id": "8f1be249-99a1-4695-8419-92663b8edc8d",
+        "createdAt": "2026-01-15T04:29:43.194Z",
+        "updatedAt": "2026-01-15T04:29:43.194Z",
+        "name": "FindPoint Agency",
+        "domain": "findpoint.ca",
+        "logo": null,
+        "defaultCurrency": "CAD",
+        "taxRate": "0.13",
+        "isActive": true,
+        "settings": null
+      }
+    ],
+    "client_notes": [],
+    "clients": [
+      {
+        "id": "90d6dc91-2fdd-45da-8ca3-a501d75b1ca0",
+        "createdAt": "2026-01-15T04:29:43.218Z",
+        "updatedAt": "2026-01-15T04:29:43.218Z",
+        "agencyId": "8f1be249-99a1-4695-8419-92663b8edc8d",
+        "name": "John Doe",
+        "companyName": "Acme Corporation",
+        "email": "john@acme.com",
+        "phone": "+1-555-0123",
+        "notes": "Long-term client, prefers email communication",
+        "status": "active"
+      }
+    ],
+    "contact_submissions": [
+      {
+        "id": "9bef94be-abd2-4f2f-81fc-fd1bdc8e2057",
+        "createdAt": "2026-01-15T04:29:43.246Z",
+        "updatedAt": "2026-01-15T04:29:43.246Z",
+        "name": "orhan simsek",
+        "email": "orhanozan33@gmail.com",
+        "message": "asdsadasdas",
+        "status": "new",
+        "adminNotes": null
+      },
+      {
+        "id": "27e4ca05-cef9-4ef6-80ff-5651caf10a8d",
+        "createdAt": "2026-01-15T04:29:43.246Z",
+        "updatedAt": "2026-01-15T04:29:43.246Z",
+        "name": "orhan simsek",
+        "email": "orhanozan33@hotmail.com",
+        "message": "huıoıpoppğjug",
+        "status": "new",
+        "adminNotes": null
+      },
+      {
+        "id": "2d980ba5-13ad-44e5-8b89-13b5c060bc81",
+        "createdAt": "2026-01-15T04:29:43.246Z",
+        "updatedAt": "2026-01-15T04:29:43.246Z",
+        "name": "askdm",
+        "email": "mkajkd@gmail.com",
+        "message": "asdlöalsödölaös",
+        "status": "new",
+        "adminNotes": null
+      }
+    ],
+    "hosting_services": [
+      {
+        "id": "473da84a-ef9d-469b-b25b-7d1a9bdcd76d",
+        "createdAt": "2026-01-15T04:29:43.231Z",
+        "updatedAt": "2026-01-15T04:29:43.231Z",
+        "agencyId": "8f1be249-99a1-4695-8419-92663b8edc8d",
+        "provider": "Vercel",
+        "plan": "Pro Plan",
+        "startDate": "2024-01-14T05:00:00.000Z",
+        "endDate": "2025-01-14T05:00:00.000Z",
+        "autoRenew": true,
+        "monthlyCost": "20.00",
+        "currency": "USD",
+        "notes": "Auto-renewal enabled",
+        "projectId": "c9713b55-486c-4381-8141-4bedd792cc3a"
+      }
+    ],
+    "invoice_items": [],
+    "invoices": [],
+    "notifications": [],
+    "payments": [
+      {
+        "id": "6d2ed0e6-52a4-4cda-8fdd-5d21fcd0b4a3",
+        "createdAt": "2026-01-15T04:29:43.226Z",
+        "updatedAt": "2026-01-15T04:29:43.226Z",
+        "agencyId": "8f1be249-99a1-4695-8419-92663b8edc8d",
+        "amount": "5000.00",
+        "currency": "CAD",
+        "status": "paid",
+        "paymentDate": "2024-01-19T05:00:00.000Z",
+        "notes": "Initial deposit",
+        "projectId": "c9713b55-486c-4381-8141-4bedd792cc3a"
+      }
+    ],
+    "portfolio": [
+      {
+        "id": "a91c044c-745c-4b25-9318-1b675d463234",
+        "createdAt": "2026-01-15T04:29:43.241Z",
+        "updatedAt": "2026-01-15T04:29:43.241Z",
+        "title": "E-Commerce Platform",
+        "titleFr": "Plateforme E-Commerce",
+        "titleTr": "E-Ticaret Platformu",
+        "description": "Modern e-commerce solution with seamless checkout experience.",
+        "descriptionFr": "Solution e-commerce moderne avec expérience de paiement fluide.",
+        "descriptionTr": "Sorunsuz ödeme deneyimi ile modern e-ticaret çözümü.",
+        "image": null,
+        "technologies": "Next.js,TypeScript,Stripe,PostgreSQL",
+        "category": "E-Commerce",
+        "projectUrl": null,
+        "isActive": true,
+        "sortOrder": 1
+      }
+    ],
+    "projects": [
+      {
+        "id": "c9713b55-486c-4381-8141-4bedd792cc3a",
+        "createdAt": "2026-01-15T04:29:43.222Z",
+        "updatedAt": "2026-01-15T04:29:43.222Z",
+        "agencyId": "8f1be249-99a1-4695-8419-92663b8edc8d",
+        "name": "Acme Website Redesign",
+        "description": "Complete website redesign with modern UI/UX and performance optimization",
+        "type": "redesign",
+        "startDate": "2024-01-14T05:00:00.000Z",
+        "deliveryDate": "2024-03-14T04:00:00.000Z",
+        "status": "in-progress",
+        "price": "15000.00",
+        "currency": "CAD",
+        "clientId": "90d6dc91-2fdd-45da-8ca3-a501d75b1ca0"
+      }
+    ],
+    "reminders": [
+      {
+        "id": "c26c51d6-9351-436b-8c4b-e12178a9d5f4",
+        "createdAt": "2026-01-15T04:29:43.235Z",
+        "updatedAt": "2026-01-15T04:29:43.235Z",
+        "agencyId": "8f1be249-99a1-4695-8419-92663b8edc8d",
+        "type": "hosting_expiration",
+        "title": "Acme Website - Hosting Renewal",
+        "description": "Hosting service expires in 30 days",
+        "dueDate": "2024-12-14T05:00:00.000Z",
+        "isCompleted": false,
+        "completedAt": null,
+        "notificationStatus": "pending",
+        "lastNotifiedAt": null,
+        "notificationAttempts": 0,
+        "relatedEntityType": "hosting",
+        "relatedEntityId": "c67bd734-0dac-4bf1-a2a7-8a3913232a45",
+        "daysBeforeReminder": 30
+      }
+    ],
+    "users": [
+      {
+        "id": "22066745-3b48-48b8-b812-7884d6f3fc26",
+        "createdAt": "2026-01-15T04:29:43.212Z",
+        "updatedAt": "2026-01-15T04:29:43.212Z",
+        "email": "orhanozan33@gmail.com",
+        "password": "$2b$10$ibvc94E4O4QqMFkeuYOEyuw2bRu0pgK1cR1TzZHbaGHY.Df82zdPG",
+        "name": "Super Admin",
+        "role": "super_admin",
+        "isActive": true,
+        "agencyId": null
+      },
+      {
+        "id": "035f904c-595a-482c-93b2-613d3af51e9e",
+        "createdAt": "2026-01-15T04:29:43.212Z",
+        "updatedAt": "2026-01-15T04:29:43.212Z",
+        "email": "admin@findpoint.ca",
+        "password": "$2b$10$qyfvPEjz7uAVl9WaOvtLle1AVYMzJdPcMj6.eK8l3GxWoOCh5k74K",
+        "name": "Admin User",
+        "role": "admin",
+        "isActive": true,
+        "agencyId": "8f1be249-99a1-4695-8419-92663b8edc8d"
+      }
+    ]
+  }
+}

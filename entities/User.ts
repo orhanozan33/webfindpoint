@@ -1,4 +1,4 @@
-import { Entity, Column, BeforeInsert, ManyToOne, JoinColumn } from 'typeorm'
+import { Entity, Column, BeforeInsert, BeforeUpdate, ManyToOne, JoinColumn } from 'typeorm'
 import { BaseEntity } from './BaseEntity'
 import * as bcrypt from 'bcryptjs'
 
@@ -28,8 +28,13 @@ export class User extends BaseEntity {
   agency?: any
 
   @BeforeInsert()
+  @BeforeUpdate()
   async hashPassword() {
-    this.password = await bcrypt.hash(this.password, 10)
+    // Only hash if password is new or changed (not already hashed)
+    // Check if password is already hashed (bcrypt hashes start with $2a$ or $2b$)
+    if (this.password && !this.password.startsWith('$2a$') && !this.password.startsWith('$2b$')) {
+      this.password = await bcrypt.hash(this.password, 10)
+    }
   }
 
   async comparePassword(plainPassword: string): Promise<boolean> {

@@ -1,8 +1,8 @@
-import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth/session'
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 import { headers } from 'next/headers'
+import { ClientRedirect } from '@/components/admin/ClientRedirect'
 // import { AnimatedNetwork } from '@/components/background/AnimatedNetwork' // Disabled for admin performance
 
 // Dynamic imports with no SSR to prevent useContext errors
@@ -34,23 +34,30 @@ export default async function AdminLayout({
     const pathname = headersList.get('x-pathname') || ''
     
     // If we're on login page, render without layout (login has its own layout)
-    if (pathname === '/admin/login' || pathname.startsWith('/admin/login')) {
+    const isLoginPage = pathname === '/admin/login' || pathname.startsWith('/admin/login')
+    if (isLoginPage) {
       return <>{children}</>
     }
 
     // Full JWT verification happens here (server-side only)
     const session = await getSession()
 
-    // If no session and not on login page, redirect to login
-    if (!session) {
-      redirect('/admin/login')
+    // Debug logging
+    if (process.env.NODE_ENV === 'development') {
+      console.log('AdminLayout - Pathname:', pathname)
+      console.log('AdminLayout - Session:', session ? { userId: session.userId, email: session.email, role: session.role } : 'NULL')
     }
 
     // Role-based access control
-    if (session.role !== 'super_admin' && session.role !== 'admin' && session.role !== 'staff') {
-      redirect('/admin/login')
+    const isValidRole = session && (session.role === 'super_admin' || session.role === 'admin' || session.role === 'staff')
+    
+    if (!isValidRole) {
+      console.log('AdminLayout - Invalid role or no session:', session?.role || 'NO_SESSION')
+      // Invalid session - use client-side redirect to prevent server-side redirect loop
+      return <ClientRedirect to="/admin/login" />
     }
 
+    // Valid session - render admin layout
     return (
       <div className="min-h-screen bg-neutral-50 relative overflow-x-hidden">
         {/* AnimatedNetwork disabled in admin for better performance */}
@@ -71,7 +78,16 @@ export default async function AdminLayout({
     )
   } catch (error) {
     console.error('Admin layout error:', error)
-    // If there's an error, redirect to login
-    redirect('/admin/login')
+    // If there's an error, check if we're on login page
+    const headersList = await headers()
+    const pathname = headersList.get('x-pathname') || ''
+    const isLoginPage = pathname === '/admin/login' || pathname.startsWith('/admin/login')
+    
+    if (isLoginPage) {
+      return <>{children}</>
+    }
+    
+    // If there's an error and not on login page, use client redirect
+    return <ClientRedirect to="/admin/login" />
   }
 }

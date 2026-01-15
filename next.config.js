@@ -33,6 +33,8 @@ const nextConfig = {
   swcMinify: true,
   // Font optimization
   optimizeFonts: true,
+  // Server components external packages
+  serverComponentsExternalPackages: ['jsonwebtoken', 'bcryptjs', 'pg', 'typeorm'],
   webpack: (config, { isServer }) => {
     // Optimize bundle size
     if (!isServer) {

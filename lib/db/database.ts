@@ -18,9 +18,14 @@ import { Notification } from '@/entities/Notification'
 const getDbConfig = () => {
   // If connection string is provided, use it
   if (process.env.DATABASE_URL) {
+    // For Supabase and production, always use SSL with rejectUnauthorized: false
+    // This handles self-signed certificates in certificate chain
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL
     return {
       url: process.env.DATABASE_URL,
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+      ssl: isProduction || process.env.DB_SSL === 'true' 
+        ? { rejectUnauthorized: false } 
+        : false,
     }
   }
 
@@ -100,6 +105,8 @@ export const AppDataSource = new DataSource({
     min: 5, // Minimum number of connections in the pool
     idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
     connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection cannot be established
+    // SSL configuration for Supabase (when using connection string)
+    ...(dbConfig.ssl && dbConfig.url ? { ssl: dbConfig.ssl } : {}),
   },
   poolSize: 20, // Connection pool size
 })
@@ -129,10 +136,20 @@ export async function initializeDatabase() {
   if (!isInitialized) {
     if (!AppDataSource.isInitialized) {
       try {
+        // Log connection attempt in production for debugging
+        if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+          console.log('🔌 Attempting database connection...')
+          if (dbConfig.url) {
+            const urlObj = new URL(dbConfig.url.replace('postgresql://', 'https://'))
+            console.log(`📊 Connecting to: ${urlObj.hostname}${urlObj.pathname}`)
+            console.log(`🔒 SSL: ${dbConfig.ssl ? 'enabled' : 'disabled'}`)
+          }
+        }
+        
         await AppDataSource.initialize()
         
         // Log successful initialization with table count
-        if (process.env.NODE_ENV === 'development' || process.env.DB_SYNC === 'true') {
+        if (process.env.NODE_ENV === 'development' || process.env.DB_SYNC === 'true' || process.env.VERCEL) {
           const tableCount = AppDataSource.entityMetadatas.length
           console.log(`✅ Database initialized successfully with ${tableCount} entities`)
           
@@ -145,6 +162,15 @@ export async function initializeDatabase() {
         if (process.env.NEXT_PHASE === 'phase-production-build') {
           console.warn('Database connection skipped during build:', error.message)
           throw new Error('Database connection skipped during build')
+        }
+        // Log detailed error in production for debugging
+        if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+          console.error('❌ Database connection error:', error.message)
+          console.error('Error code:', error.code)
+          console.error('Error name:', error.name)
+          if (error.stack) {
+            console.error('Error stack:', error.stack.substring(0, 500))
+          }
         }
         throw error
       }

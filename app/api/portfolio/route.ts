@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server'
 import { initializeDatabase } from '@/lib/db/database'
 import { Portfolio } from '@/entities/Portfolio'
 
+// Ensure this route is handled dynamically
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 /**
  * Public API route to fetch active portfolio items
  * No authentication required - for public website display

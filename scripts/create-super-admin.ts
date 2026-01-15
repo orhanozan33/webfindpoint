@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import { AppDataSource } from '../lib/db/database'
+import { initializeDatabase } from '../lib/db/database'
 import { User } from '../entities/User'
 import * as bcrypt from 'bcryptjs'
 
@@ -7,24 +7,11 @@ async function createSuperAdmin() {
   try {
     console.log('Initializing database...')
     
-    // Try to initialize, create database if needed
-    try {
-      await AppDataSource.initialize()
-      console.log('Database initialized')
-    } catch (error: any) {
-      if (error.code === '3D000') {
-        // Database doesn't exist
-        console.error('❌ Database "findpoint" does not exist!')
-        console.error('\nPlease create the database first:')
-        console.error('1. Connect to PostgreSQL')
-        console.error('2. Run: CREATE DATABASE findpoint;')
-        console.error('\nOr update DB_NAME in .env.local')
-        process.exit(1)
-      }
-      throw error
-    }
+    // Initialize database
+    const dataSource = await initializeDatabase()
+    console.log('Database initialized')
 
-    const userRepository = AppDataSource.getRepository(User)
+    const userRepository = dataSource.getRepository(User)
 
     const email = 'orhanozan33@gmail.com'
     const password = '33333333'
@@ -68,10 +55,6 @@ async function createSuperAdmin() {
   } catch (error) {
     console.error('Error creating super admin:', error)
     throw error
-  } finally {
-    if (AppDataSource.isInitialized) {
-      await AppDataSource.destroy()
-    }
   }
 }
 

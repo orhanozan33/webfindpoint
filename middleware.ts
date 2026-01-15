@@ -16,7 +16,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Admin routes protection (simple cookie check - full verification in layout)
+  // Admin routes protection
   if (pathname.startsWith('/admin')) {
     const token = request.cookies.get('admin-token')?.value
 
@@ -30,10 +30,34 @@ export function middleware(request: NextRequest) {
       return response
     }
 
-    // Token exists - let layout handle full verification
-    // Already logged in, redirect from login page
+    // Basic token format check (JWT has 3 parts separated by dots)
+    // Full verification happens in layout
+    const tokenParts = token.split('.')
+    const isValidFormat = tokenParts.length === 3 && tokenParts.every(part => part.length > 0)
+    
+    if (!isValidFormat) {
+      // Invalid token format - clear cookie and redirect to login
+      if (pathname !== '/admin/login') {
+        const response = NextResponse.redirect(new URL('/admin/login', request.url))
+        response.cookies.delete('admin-token')
+        return response
+      }
+      // On login page, just clear cookie
+      const response = NextResponse.next()
+      response.cookies.delete('admin-token')
+      response.headers.set('x-pathname', pathname)
+      return response
+    }
+
+    // Token exists and has valid format - let layout handle full verification
+    // Don't redirect from login page automatically - let layout verify token first
+    // This prevents redirect loops with invalid tokens
     if (pathname === '/admin/login') {
-      return NextResponse.redirect(new URL('/admin', request.url))
+      // Only redirect if we're sure token is valid (we can't verify in middleware)
+      // So we let the layout handle it - if token is invalid, layout will redirect back
+      const response = NextResponse.next()
+      response.headers.set('x-pathname', pathname)
+      return response
     }
 
     // Add pathname to headers for layout

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { fadeIn, slideUp } from '@/lib/motion/variants'
@@ -12,19 +12,31 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Clear any invalid cookies on mount
+  useEffect(() => {
+    // Clear admin-token cookie if it exists (might be invalid)
+    document.cookie = 'admin-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+  }, [])
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
     try {
+      const requestBody = { email, password }
+      console.log('Sending login request:', { email, method: 'POST', url: '/api/auth/login' })
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(requestBody),
       })
+
+      console.log('Response status:', response.status)
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
 
       // Check if response is JSON
       const contentType = response.headers.get('content-type')
@@ -33,17 +45,24 @@ export default function AdminLoginPage() {
         const text = await response.text()
         console.error('Non-JSON response:', text.substring(0, 200))
         setError('Sunucu hatası. Lütfen konsolu kontrol edin.')
+        setLoading(false)
         return
       }
 
       const data = await response.json()
+      console.log('Response data:', data)
 
       if (response.ok) {
-        router.push('/admin')
-        router.refresh()
+        console.log('Login successful, redirecting...')
+        // Wait a bit for cookie to be set, then redirect
+        setTimeout(() => {
+          window.location.href = '/admin'
+        }, 100)
       } else {
         // Show specific error message from server
-        setError(data.error || 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.')
+        const errorMessage = data.error || 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.'
+        console.error('Login failed:', errorMessage)
+        setError(errorMessage)
       }
     } catch (err: any) {
       console.error('Login error:', err)
@@ -84,6 +103,8 @@ export default function AdminLoginPage() {
             <input
               type="email"
               id="email"
+              name="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -99,6 +120,8 @@ export default function AdminLoginPage() {
             <input
               type="password"
               id="password"
+              name="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
