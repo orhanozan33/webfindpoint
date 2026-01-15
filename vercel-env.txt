@@ -21,5 +21,8 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 # JWT
 JWT_SECRET=7NY5X5Orz6pueeWrsdwQzmWjf4kInL0Dz6/MWXZvJkiBeaOlnx/paxGJVoh7wmGNXaLWDyO9BsLaQcQGTYxUjg==
 
+# Super Admin Setup (for initial user creation)
+SUPER_ADMIN_SECRET=setup-secret-change-in-production
+
 # Next.js
 NEXT_PUBLIC_SITE_URL=https://webfindpoint.vercel.app
