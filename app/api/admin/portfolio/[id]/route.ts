@@ -67,20 +67,32 @@ export async function PUT(
     portfolio.description = description
     portfolio.descriptionFr = descriptionFr || description
     portfolio.descriptionTr = descriptionTr || description
-    portfolio.category = category
+    portfolio.category = category || undefined
     portfolio.technologies = Array.isArray(technologies) ? technologies : (technologies ? [technologies] : [])
-    portfolio.image = image
-    portfolio.projectUrl = projectUrl
+    portfolio.image = image && image.trim() ? image.trim() : undefined
+    portfolio.projectUrl = projectUrl && projectUrl.trim() ? projectUrl.trim() : undefined
     portfolio.isActive = isActive !== undefined ? isActive : true
     portfolio.sortOrder = sortOrder || 0
 
     await portfolioRepository.save(portfolio)
 
     return NextResponse.json(portfolio)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating portfolio item:', error)
+    console.error('Error details:', {
+      message: error?.message,
+      code: error?.code,
+      name: error?.name,
+      constraint: error?.constraint,
+      detail: error?.detail,
+      table: error?.table,
+      stack: error?.stack?.substring(0, 500)
+    })
     return NextResponse.json(
-      { error: 'Portföy öğesi güncellenemedi' },
+      { 
+        error: 'Portföy öğesi güncellenemedi',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
       { status: 500 }
     )
   }

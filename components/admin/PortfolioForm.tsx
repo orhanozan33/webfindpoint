@@ -138,15 +138,22 @@ export function PortfolioForm({ portfolio }: PortfolioFormProps) {
         body: JSON.stringify(payload),
       })
 
-      if (response.ok) {
+      if (response.ok || response.status === 201) {
         router.push('/admin/portfolio')
         router.refresh()
       } else {
-        const data = await response.json()
-        setError(data.error || 'Portföy öğesi kaydedilemedi')
+        try {
+          const data = await response.json()
+          console.error('Portfolio form error:', data)
+          setError(data.error || 'Portföy öğesi kaydedilemedi')
+        } catch (parseError) {
+          console.error('Portfolio form error (no JSON body):', response.status, response.statusText)
+          setError(`Portföy öğesi kaydedilemedi: ${response.status} ${response.statusText}`)
+        }
       }
-    } catch (err) {
-      setError('Bir hata oluştu. Lütfen tekrar deneyin.')
+    } catch (err: any) {
+      console.error('Portfolio form network error:', err)
+      setError(err?.message || 'Bir hata oluştu. Lütfen tekrar deneyin.')
     } finally {
       setLoading(false)
     }
