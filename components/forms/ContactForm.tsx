@@ -44,18 +44,33 @@ export function ContactForm({ messages }: ContactFormProps) {
         body: JSON.stringify(formData),
       })
 
-      const data = await response.json()
-
+      // Check if response is successful before parsing JSON
       if (response.ok || response.status === 201) {
+        // Try to parse JSON, but don't fail if it's empty
+        try {
+          const data = await response.json()
+          console.log('Contact form success:', data)
+        } catch (parseError) {
+          // Response is successful but might not have JSON body
+          console.log('Contact form success (no JSON body)')
+        }
+        
         setStatus('success')
         setFormData({ name: '', email: '', message: '' })
         setTimeout(() => setStatus('idle'), 5000)
       } else {
-        console.error('Contact form error:', data)
+        // Response is not successful, try to get error message
+        try {
+          const data = await response.json()
+          console.error('Contact form error:', data)
+        } catch (parseError) {
+          console.error('Contact form error (no JSON body):', response.status, response.statusText)
+        }
         setStatus('error')
         setTimeout(() => setStatus('idle'), 5000)
       }
     } catch (error) {
+      console.error('Contact form network error:', error)
       setStatus('error')
       setTimeout(() => setStatus('idle'), 5000)
     }
@@ -148,10 +163,10 @@ export function ContactForm({ messages }: ContactFormProps) {
             id="message"
             name="message"
             required
-            rows={5}
+            rows={3}
             value={formData.message}
             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-            className="w-full px-4 py-3 sm:py-3.5 bg-white text-black border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all resize-none placeholder:text-neutral-400 text-base touch-manipulation min-h-[120px]"
+            className="w-full px-4 py-3 sm:py-3.5 bg-white text-black border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all resize-none placeholder:text-neutral-400 text-base touch-manipulation min-h-[80px]"
             placeholder={messages.form.message}
             whileFocus={{ scale: 1.01 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
