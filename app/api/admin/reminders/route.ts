@@ -117,19 +117,107 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate and resolve relatedEntityId if provided
+    let finalRelatedEntityId: string | null = relatedEntityId || null
+    
+    // UUID format regex
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    
+    if (finalRelatedEntityId && relatedEntityType && !uuidRegex.test(finalRelatedEntityId)) {
+      // If relatedEntityId is not a valid UUID, try to find entity by name
+      try {
+        if (relatedEntityType === 'hosting') {
+          const HostingService = require('@/entities/HostingService').HostingService
+          const hostingRepository = dataSource.getRepository(HostingService)
+          // Try to find by provider name
+          const hosting = await hostingRepository.findOne({
+            where: { provider: finalRelatedEntityId },
+            select: ['id', 'agencyId'],
+          })
+          if (hosting) {
+            finalRelatedEntityId = hosting.id
+            if (hosting.agencyId) {
+              finalAgencyId = hosting.agencyId
+            }
+          } else {
+            return NextResponse.json(
+              { error: `Hosting servisi bulunamadı: "${relatedEntityId}". Lütfen geçerli bir UUID veya provider adı giriniz.` },
+              { status: 404 }
+            )
+          }
+        } else if (relatedEntityType === 'project') {
+          const Project = require('@/entities/Project').Project
+          const projectRepository = dataSource.getRepository(Project)
+          const project = await projectRepository.findOne({
+            where: { name: finalRelatedEntityId },
+            select: ['id', 'agencyId'],
+          })
+          if (project) {
+            finalRelatedEntityId = project.id
+            if (project.agencyId) {
+              finalAgencyId = project.agencyId
+            }
+          } else {
+            return NextResponse.json(
+              { error: `Proje bulunamadı: "${relatedEntityId}"` },
+              { status: 404 }
+            )
+          }
+        } else if (relatedEntityType === 'client') {
+          const Client = require('@/entities/Client').Client
+          const clientRepository = dataSource.getRepository(Client)
+          const client = await clientRepository.findOne({
+            where: { name: finalRelatedEntityId },
+            select: ['id', 'agencyId'],
+          })
+          if (client) {
+            finalRelatedEntityId = client.id
+            if (client.agencyId) {
+              finalAgencyId = client.agencyId
+            }
+          } else {
+            return NextResponse.json(
+              { error: `Müşteri bulunamadı: "${relatedEntityId}"` },
+              { status: 404 }
+            )
+          }
+        } else {
+          // Unknown entity type with non-UUID ID
+          return NextResponse.json(
+            { error: `Geçersiz ilişkili varlık ID formatı. UUID formatında olmalıdır veya geçerli bir ${relatedEntityType} adı olmalıdır.` },
+            { status: 400 }
+          )
+        }
+      } catch (error) {
+        console.error('Error resolving relatedEntityId:', error)
+        return NextResponse.json(
+          { error: `İlişkili varlık bulunamadı: "${relatedEntityId}"` },
+          { status: 404 }
+        )
+      }
+    }
+
     // Create reminder using insert to avoid loading relations and cyclic dependency
-    const insertResult = await reminderRepository.insert({
+    const insertData: any = {
       agencyId: finalAgencyId,
       type,
       title,
       description,
       dueDate: new Date(dueDate),
       daysBeforeReminder: daysBeforeReminder || 30,
-      relatedEntityType,
-      relatedEntityId,
       isCompleted: false,
       notificationStatus: 'pending',
-    })
+    }
+    
+    // Only include relatedEntityType and relatedEntityId if they are provided
+    if (relatedEntityType) {
+      insertData.relatedEntityType = relatedEntityType
+    }
+    if (finalRelatedEntityId) {
+      insertData.relatedEntityId = finalRelatedEntityId
+    }
+    
+    const insertResult = await reminderRepository.insert(insertData)
 
     const reminderId = insertResult.identifiers[0].id
 
