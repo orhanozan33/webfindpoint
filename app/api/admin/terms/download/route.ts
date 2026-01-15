@@ -196,9 +196,13 @@ export async function GET(request: NextRequest) {
     headers.set('Content-Type', 'application/pdf')
     headers.set('Content-Disposition', 'attachment; filename="kullanim-sozlesmesi.pdf"')
 
-    // Convert Uint8Array to Blob for NextResponse compatibility
-    // Blob accepts Uint8Array directly and is fully compatible with NextResponse
-    const blob = new Blob([pdfBuffer], { type: 'application/pdf' })
+    // Create a new ArrayBuffer and copy the Uint8Array data to avoid SharedArrayBuffer issues
+    const arrayBuffer = new ArrayBuffer(pdfBuffer.length)
+    const view = new Uint8Array(arrayBuffer)
+    view.set(pdfBuffer)
+
+    // Create Blob from the new ArrayBuffer
+    const blob = new Blob([arrayBuffer], { type: 'application/pdf' })
 
     // Return PDF as response using NextResponse with Blob
     return new NextResponse(blob, { headers })
