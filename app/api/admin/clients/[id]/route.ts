@@ -105,58 +105,69 @@ export async function DELETE(
       )
     }
 
-    // Delete all related records before deleting the client
-    // This prevents foreign key constraint errors
-    
-    // 1. Delete InvoiceItems (through Invoices)
-    const Invoice = require('@/entities/Invoice').Invoice
-    const InvoiceItem = require('@/entities/InvoiceItem').InvoiceItem
-    const invoiceRepository = dataSource.getRepository(Invoice)
-    const invoiceItemRepository = dataSource.getRepository(InvoiceItem)
-    
-    const invoices = await invoiceRepository.find({ where: { clientId: id } })
-    for (const invoice of invoices) {
-      // Delete invoice items first
-      await invoiceItemRepository.delete({ invoiceId: invoice.id })
-    }
-    
-    // 2. Delete Invoices
-    await invoiceRepository.delete({ clientId: id })
-    
-    // 3. Delete Projects and their related records
-    const Project = require('@/entities/Project').Project
-    const Payment = require('@/entities/Payment').Payment
-    const HostingService = require('@/entities/HostingService').HostingService
-    const projectRepository = dataSource.getRepository(Project)
-    const paymentRepository = dataSource.getRepository(Payment)
-    const hostingRepository = dataSource.getRepository(HostingService)
-    
-    const projects = await projectRepository.find({ where: { clientId: id } })
-    for (const project of projects) {
-      // Delete payments
-      await paymentRepository.delete({ projectId: project.id })
-      // Delete hosting services
-      await hostingRepository.delete({ projectId: project.id })
-    }
-    
-    // 4. Delete Projects
-    await projectRepository.delete({ clientId: id })
-    
-    // 5. Delete ClientNotes
-    const ClientNote = require('@/entities/ClientNote').ClientNote
-    const clientNoteRepository = dataSource.getRepository(ClientNote)
-    await clientNoteRepository.delete({ clientId: id })
-    
-    // 6. Delete Reminders related to this client
-    const Reminder = require('@/entities/Reminder').Reminder
-    const reminderRepository = dataSource.getRepository(Reminder)
-    await reminderRepository.delete({ 
-      relatedEntityType: 'client',
-      relatedEntityId: id 
-    })
+    // Use transaction to ensure all deletions succeed or fail together
+    await dataSource.transaction(async (transactionalEntityManager) => {
+      // Delete all related records before deleting the client
+      // This prevents foreign key constraint errors
+      
+      // 1. Delete InvoiceItems (through Invoices)
+      const Invoice = require('@/entities/Invoice').Invoice
+      const InvoiceItem = require('@/entities/InvoiceItem').InvoiceItem
+      const invoiceRepository = transactionalEntityManager.getRepository(Invoice)
+      const invoiceItemRepository = transactionalEntityManager.getRepository(InvoiceItem)
+      
+      const invoices = await invoiceRepository.find({ where: { clientId: id } })
+      for (const invoice of invoices) {
+        // Delete invoice items first
+        await invoiceItemRepository.delete({ invoiceId: invoice.id })
+      }
+      
+      // 2. Delete Invoices
+      await invoiceRepository.delete({ clientId: id })
+      
+      // 3. Delete Projects and their related records
+      const Project = require('@/entities/Project').Project
+      const Payment = require('@/entities/Payment').Payment
+      const HostingService = require('@/entities/HostingService').HostingService
+      const projectRepository = transactionalEntityManager.getRepository(Project)
+      const paymentRepository = transactionalEntityManager.getRepository(Payment)
+      const hostingRepository = transactionalEntityManager.getRepository(HostingService)
+      
+      const projects = await projectRepository.find({ where: { clientId: id } })
+      for (const project of projects) {
+        // Delete payments
+        await paymentRepository.delete({ projectId: project.id })
+        // Delete hosting services
+        await hostingRepository.delete({ projectId: project.id })
+      }
+      
+      // 4. Delete Projects
+      await projectRepository.delete({ clientId: id })
+      
+      // 5. Delete ClientNotes
+      const ClientNote = require('@/entities/ClientNote').ClientNote
+      const clientNoteRepository = transactionalEntityManager.getRepository(ClientNote)
+      await clientNoteRepository.delete({ clientId: id })
+      
+      // 6. Delete Reminders related to this client
+      const Reminder = require('@/entities/Reminder').Reminder
+      const reminderRepository = transactionalEntityManager.getRepository(Reminder)
+      await reminderRepository.delete({ 
+        relatedEntityType: 'client',
+        relatedEntityId: id 
+      })
 
-    // 7. Finally, delete the client
-    await clientRepository.remove(client)
+      // 7. Delete Notifications related to this client
+      const Notification = require('@/entities/Notification').Notification
+      const notificationRepository = transactionalEntityManager.getRepository(Notification)
+      await notificationRepository.delete({ 
+        relatedEntityType: 'client',
+        relatedEntityId: id 
+      })
+
+      // 8. Finally, delete the client
+      await transactionalEntityManager.remove(client)
+    })
 
     return NextResponse.json({ success: true, message: 'Müşteri başarıyla silindi' })
   } catch (error: any) {
