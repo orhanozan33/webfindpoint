@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authorize } from '@/lib/auth/authorize'
 import { initializeDatabase } from '@/lib/db/database'
 import { Notification } from '@/entities/Notification'
+import { Contact } from '@/entities/Contact'
 import { scopeToAgency, getAgencyContext } from '@/lib/multi-tenant/scope'
 
 export async function GET(request: NextRequest) {
@@ -13,6 +14,7 @@ export async function GET(request: NextRequest) {
   const context = await getAgencyContext(auth.session!)
   const dataSource = await initializeDatabase()
   const notificationRepository = dataSource.getRepository(Notification)
+  const contactRepository = dataSource.getRepository(Contact)
 
   let query = notificationRepository
     .createQueryBuilder('notification')
@@ -26,11 +28,34 @@ export async function GET(request: NextRequest) {
   query = scopeToAgency(query, context, 'notification')
 
   const notifications = await query.getMany()
-  const unreadCount = notifications.filter((n) => !n.isRead).length
+  const unreadNotificationCount = notifications.filter((n) => !n.isRead).length
+
+  // Get unread contact submissions count
+  let unreadContactCount = 0
+  try {
+    const contactQuery = contactRepository
+      .createQueryBuilder('contact')
+      .where('contact.status = :status', { status: 'new' })
+    
+    // Scope to agency if not super admin
+    if (context.agencyId) {
+      // Contacts don't have agencyId, so we count all new contacts for all agencies
+      // In a multi-tenant setup, you might want to filter by agency
+    }
+    
+    unreadContactCount = await contactQuery.getCount()
+  } catch (error) {
+    console.error('Error fetching unread contacts:', error)
+  }
+
+  // Total unread count (notifications + contacts)
+  const totalUnreadCount = unreadNotificationCount + unreadContactCount
 
   return NextResponse.json({
     notifications,
-    unreadCount,
+    unreadCount: totalUnreadCount,
+    unreadNotificationCount,
+    unreadContactCount,
   })
 }
 

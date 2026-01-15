@@ -16,8 +16,8 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
 
   useEffect(() => {
     fetchNotifications()
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000)
+    // Poll for new notifications every 10 seconds (more frequent for real-time feel)
+    const interval = setInterval(fetchNotifications, 10000)
     return () => clearInterval(interval)
   }, [agencyId])
 
@@ -27,6 +27,7 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
       if (response.ok) {
         const data = await response.json()
         setNotifications(data.notifications || [])
+        // Total unread count includes both notifications and unread contacts
         setUnreadCount(data.unreadCount || 0)
       }
     } catch (error) {
@@ -124,7 +125,14 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
               className="absolute right-0 top-full mt-2 w-80 md:w-96 bg-white rounded-xl shadow-xl border border-neutral-200 z-50 max-h-[80vh] overflow-hidden flex flex-col"
             >
               <div className="p-4 border-b border-neutral-200 flex items-center justify-between">
-                <h3 className="font-bold text-neutral-900">Bildirimler</h3>
+                <div>
+                  <h3 className="font-bold text-neutral-900">Bildirimler</h3>
+                  {unreadCount > 0 && (
+                    <p className="text-xs text-neutral-500 mt-1">
+                      {unreadCount} okunmamış bildirim
+                    </p>
+                  )}
+                </div>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
@@ -176,13 +184,20 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
                               <h4 className="font-semibold text-neutral-900 text-sm">
                                 {notification.title}
                               </h4>
-                              <span
-                                className={`px-2 py-1 text-xs font-semibold rounded border ${getSeverityColor(
-                                  notification.severity
-                                )}`}
-                              >
-                                {notification.severity}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                {notification.type === 'contact_submission' && (
+                                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                                    Mesaj
+                                  </span>
+                                )}
+                                <span
+                                  className={`px-2 py-1 text-xs font-semibold rounded border ${getSeverityColor(
+                                    notification.severity
+                                  )}`}
+                                >
+                                  {notification.severity}
+                                </span>
+                              </div>
                             </div>
                             {notification.message && (
                               <p className="text-sm text-neutral-600 mt-1">
