@@ -120,14 +120,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate finalAgencyId before creating payment
+    if (!finalAgencyId) {
+      console.error('Payment creation failed: No agencyId available', { context, project })
+      return NextResponse.json(
+        { error: 'Agency bağlamı belirlenemedi. Lütfen yöneticinizle iletişime geçin.' },
+        { status: 400 }
+      )
+    }
+
     const payment = paymentRepository.create({
-      agencyId: finalAgencyId!,
+      agencyId: finalAgencyId,
       projectId,
       amount: parsedAmount,
       currency: currency || 'CAD',
       status: status || 'unpaid',
       paymentDate: paymentDate ? new Date(paymentDate) : undefined,
-      notes,
+      notes: notes || undefined,
     })
 
     await paymentRepository.save(payment)

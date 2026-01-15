@@ -52,9 +52,24 @@ export function PaymentForm({ payment, projects }: PaymentFormProps) {
         : '/api/admin/payments'
       const method = payment ? 'PUT' : 'POST'
 
+      // Validate amount before sending
+      const amountValue = formData.amount?.toString().trim()
+      if (!amountValue || amountValue === '') {
+        setError('Tutar gereklidir')
+        setLoading(false)
+        return
+      }
+
+      const parsedAmount = parseFloat(amountValue)
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        setError('Geçerli bir tutar giriniz (0\'dan büyük olmalıdır)')
+        setLoading(false)
+        return
+      }
+
       const payload = {
         ...formData,
-        amount: parseFloat(formData.amount),
+        amount: parsedAmount,
         paymentDate: formData.paymentDate || null,
       }
 
