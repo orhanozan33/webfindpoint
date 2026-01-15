@@ -13,28 +13,30 @@ export async function GET(request: NextRequest) {
     const doc = new PDFDocument({ margin: 50, size: 'A4' })
     
     // Collect PDF chunks
-    const chunks: Buffer[] = []
+    const chunks: Uint8Array[] = []
     
     // Set up event listeners before adding content
-    const pdfPromise = new Promise<Buffer>((resolve, reject) => {
-      doc.on('data', (chunk) => {
-        chunks.push(chunk)
+    const pdfPromise = new Promise<Uint8Array>((resolve, reject) => {
+      doc.on('data', (chunk: Buffer) => {
+        chunks.push(new Uint8Array(chunk))
       })
       
       doc.on('end', () => {
-        const pdfBuffer = Buffer.concat(chunks)
-        resolve(pdfBuffer)
+        // Combine all chunks into a single Uint8Array
+        const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
+        const combined = new Uint8Array(totalLength)
+        let offset = 0
+        for (const chunk of chunks) {
+          combined.set(chunk, offset)
+          offset += chunk.length
+        }
+        resolve(combined)
       })
       
-      doc.on('error', (error) => {
+      doc.on('error', (error: Error) => {
         reject(error)
       })
     })
-
-    // Set response headers for PDF download
-    const headers = new Headers()
-    headers.set('Content-Type', 'application/pdf')
-    headers.set('Content-Disposition', 'attachment; filename="kullanim-sozlesmesi.pdf"')
 
     // Header
     doc.fontSize(20).font('Helvetica-Bold').text('KULLANICI SÖZLEŞMESİ', { align: 'center' })
@@ -189,8 +191,19 @@ export async function GET(request: NextRequest) {
     // Wait for PDF to finish and get buffer
     const pdfBuffer = await pdfPromise
 
-    // Return PDF as response
-    return new NextResponse(pdfBuffer, { headers })
+    // Set response headers for PDF download
+    const headers = new Headers()
+    headers.set('Content-Type', 'application/pdf')
+    headers.set('Content-Disposition', 'attachment; filename="kullanim-sozlesmesi.pdf"')
+
+    // Convert Uint8Array to ArrayBuffer for maximum compatibility
+    const arrayBuffer = pdfBuffer.buffer.slice(
+      pdfBuffer.byteOffset,
+      pdfBuffer.byteOffset + pdfBuffer.byteLength
+    )
+
+    // Return PDF as response using standard Response (works with Next.js)
+    return new Response(arrayBuffer, { headers })
   } catch (error) {
     console.error('Error generating terms PDF:', error)
     return NextResponse.json({ error: 'PDF oluşturulamadı' }, { status: 500 })
