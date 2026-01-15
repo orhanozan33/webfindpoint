@@ -62,10 +62,53 @@ export async function POST(request: NextRequest) {
       url: publicUrl,
       filename: filename 
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('File upload error:', error)
+    console.error('Error details:', {
+      message: error?.message,
+      code: error?.code,
+      name: error?.name,
+      stack: error?.stack?.substring(0, 500),
+      isVercel: !!process.env.VERCEL,
+    })
+    
+    // Check if we're on Vercel (read-only filesystem)
+    if (process.env.VERCEL) {
+      return NextResponse.json(
+        { 
+          error: 'Vercel\'de dosya yükleme desteklenmiyor. Lütfen görsel URL\'sini manuel olarak girin veya Cloudinary, AWS S3 gibi bir cloud storage servisi kullanın.',
+          details: 'Vercel\'in dosya sistemi read-only olduğu için dosya yazma işlemi yapılamaz.'
+        },
+        { status: 500 }
+      )
+    }
+    
+    // Check for specific filesystem errors
+    if (error?.code === 'EACCES' || error?.code === 'EPERM') {
+      return NextResponse.json(
+        { 
+          error: 'Dosya yazma izni yok. Lütfen uploads klasörünün yazılabilir olduğundan emin olun.',
+          details: error?.message
+        },
+        { status: 500 }
+      )
+    }
+    
+    if (error?.code === 'ENOENT') {
+      return NextResponse.json(
+        { 
+          error: 'Dosya yolu bulunamadı.',
+          details: error?.message
+        },
+        { status: 500 }
+      )
+    }
+    
     return NextResponse.json(
-      { error: 'Dosya yüklenirken bir hata oluştu' },
+      { 
+        error: 'Dosya yüklenirken bir hata oluştu',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
       { status: 500 }
     )
   }

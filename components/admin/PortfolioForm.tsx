@@ -91,7 +91,7 @@ export function PortfolioForm({ portfolio }: PortfolioFormProps) {
         body: uploadFormData,
       })
 
-      if (response.ok) {
+      if (response.ok || response.status === 201) {
         const data = await response.json()
         // Use functional update to avoid closure issues
         setFormData((prev) => ({
@@ -99,12 +99,16 @@ export function PortfolioForm({ portfolio }: PortfolioFormProps) {
           image: data.url,
         }))
       } else {
-        const data = await response.json()
-        setError(data.error || 'Dosya yüklenemedi')
+        try {
+          const data = await response.json()
+          setError(data.error || data.details || 'Dosya yüklenemedi')
+        } catch (parseError) {
+          setError(`Dosya yüklenemedi: ${response.status} ${response.statusText}`)
+        }
       }
-    } catch (err) {
-      setError('Dosya yüklenirken bir hata oluştu')
+    } catch (err: any) {
       console.error('Upload error:', err)
+      setError(err?.message || 'Dosya yüklenirken bir hata oluştu')
     } finally {
       setUploading(false)
       // Reset file input
