@@ -3,6 +3,9 @@ import { Reminder } from '@/entities/Reminder'
 import { notFound } from 'next/navigation'
 import { ReminderForm } from '@/components/admin/ReminderForm'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 export default async function ReminderEditPage({
   params,
 }: {

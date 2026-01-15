@@ -1,10 +1,13 @@
 import { initializeDatabase } from '@/lib/db/database'
 import { Reminder } from '@/entities/Reminder'
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 import Link from 'next/link'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 // Dynamic import to prevent useContext errors
-const RemindersList = dynamic(() => import('@/components/admin/RemindersList').then((mod) => ({ default: mod.RemindersList })), {
+const RemindersList = dynamicImport(() => import('@/components/admin/RemindersList').then((mod) => ({ default: mod.RemindersList })), {
   ssr: false,
   loading: () => (
     <div className="bg-white rounded-xl p-12 border border-neutral-200 text-center">
