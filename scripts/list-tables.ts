@@ -5,11 +5,7 @@ import { initializeDatabase } from '../lib/db/database'
  */
 async function listTables() {
   try {
-    // Force development mode for local script
-    if (!process.env.NODE_ENV) {
-      process.env.NODE_ENV = 'development'
-    }
-    
+    // This script is for local use only, not included in build
     console.log('🔌 Connecting to database...')
     const dataSource = await initializeDatabase()
     
