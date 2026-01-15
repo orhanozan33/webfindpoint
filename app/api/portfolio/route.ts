@@ -17,10 +17,22 @@ export async function GET() {
     const portfolioRepository = dataSource.getRepository(Portfolio)
     
     // Fetch only active portfolio items, ordered by sortOrder
-    const portfolioItems = await portfolioRepository.find({
+    // If no active items, try to fetch all items (for debugging)
+    let portfolioItems = await portfolioRepository.find({
       where: { isActive: true },
       order: { sortOrder: 'ASC', createdAt: 'DESC' },
     })
+
+    // If no active items found, check if there are any items at all (for debugging)
+    if (portfolioItems.length === 0 && process.env.NODE_ENV === 'development') {
+      const allItems = await portfolioRepository.find({
+        order: { sortOrder: 'ASC', createdAt: 'DESC' },
+        take: 5, // Just check first 5
+      })
+      if (allItems.length > 0) {
+        console.warn(`⚠️  Found ${allItems.length} portfolio items but none are active (isActive: true)`)
+      }
+    }
 
     // Serialize to plain objects
     const serialized = portfolioItems.map((item) => ({
