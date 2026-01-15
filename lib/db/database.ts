@@ -14,33 +14,65 @@ import { Agency } from '@/entities/Agency'
 import { Notification } from '@/entities/Notification'
 
 // PostgreSQL configuration for TypeORM
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  username: process.env.DB_USERNAME || 'postgres',
-  password: process.env.DB_PASSWORD || '333333',
-  database: process.env.DB_NAME || 'webfindpoint',
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+// Support both connection string and individual parameters
+const getDbConfig = () => {
+  // If connection string is provided, use it
+  if (process.env.DATABASE_URL) {
+    return {
+      url: process.env.DATABASE_URL,
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    }
+  }
+
+  // Otherwise use individual parameters
+  return {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '5432'),
+    username: process.env.DB_USERNAME || 'postgres',
+    password: process.env.DB_PASSWORD || '333333',
+    database: process.env.DB_NAME || 'webfindpoint',
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  }
 }
+
+const dbConfig = getDbConfig()
 
 // Debug: Log database config (without password)
 if (process.env.NODE_ENV === 'development') {
-  console.log('📊 Database Config:', {
-    host: dbConfig.host,
-    port: dbConfig.port,
-    username: dbConfig.username,
-    database: dbConfig.database,
-    ssl: dbConfig.ssl ? 'enabled' : 'disabled',
-  })
+  if (dbConfig.url) {
+    // Parse connection string for logging (hide password)
+    const urlObj = new URL(dbConfig.url.replace('postgresql://', 'https://'))
+    console.log('📊 Database Config:', {
+      host: urlObj.hostname,
+      port: urlObj.port || '5432',
+      database: urlObj.pathname.replace('/', ''),
+      ssl: dbConfig.ssl ? 'enabled' : 'disabled',
+      connectionString: 'using DATABASE_URL',
+    })
+  } else {
+    console.log('📊 Database Config:', {
+      host: dbConfig.host,
+      port: dbConfig.port,
+      username: dbConfig.username,
+      database: dbConfig.database,
+      ssl: dbConfig.ssl ? 'enabled' : 'disabled',
+    })
+  }
 }
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: dbConfig.host,
-  port: dbConfig.port,
-  username: dbConfig.username,
-  password: dbConfig.password,
-  database: dbConfig.database,
+  ...(dbConfig.url 
+    ? { url: dbConfig.url, ssl: dbConfig.ssl }
+    : {
+        host: dbConfig.host,
+        port: dbConfig.port,
+        username: dbConfig.username,
+        password: dbConfig.password,
+        database: dbConfig.database,
+        ssl: dbConfig.ssl,
+      }
+  ),
   synchronize: process.env.NODE_ENV !== 'production', // Auto-sync schema in development only
   logging: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : false, // Reduced logging
   entities: [
@@ -80,13 +112,15 @@ export async function initializeDatabase() {
   }
 
   // Check if environment variables are set
-  if (!process.env.DB_HOST || process.env.DB_HOST === 'localhost') {
-    // In development, allow localhost but warn
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️  Warning: DB_HOST is localhost. Make sure your .env file is configured correctly.')
-    } else {
-      // In production, localhost is not allowed
-      throw new Error('DB_HOST cannot be localhost in production. Please set a valid database host.')
+  if (!process.env.DATABASE_URL) {
+    if (!process.env.DB_HOST || process.env.DB_HOST === 'localhost') {
+      // In development, allow localhost but warn
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️  Warning: DB_HOST is localhost. Make sure your .env file is configured correctly.')
+      } else {
+        // In production, localhost is not allowed
+        throw new Error('DB_HOST cannot be localhost in production. Please set a valid database host or use DATABASE_URL.')
+      }
     }
   }
 

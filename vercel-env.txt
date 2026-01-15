@@ -1,0 +1,21 @@
+# Database (Supabase) - Connection String
+DATABASE_URL=postgresql://postgres.wyoslbcqqdwtryqcxeni:orhanozan33@db.wyoslbcqqdwtryqcxeni.supabase.co:5432/postgres
+DB_SSL=true
+
+# Alternative: Individual parameters (if DATABASE_URL is not used)
+# DB_HOST=db.wyoslbcqqdwtryqcxeni.supabase.co
+# DB_PORT=5432
+# DB_USERNAME=postgres.wyoslbcqqdwtryqcxeni
+# DB_PASSWORD=orhanozan33
+# DB_NAME=postgres
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://wyoslbcqqdwtryqcxeni.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5b3NsYmNxcWR3dHJ5cWN4ZW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0MzQ4NDAsImV4cCI6MjA4NDAxMDg0MH0.YjnYSRX2gSyTXLA5mpJwB2zjj-_nQdAjaNFqHcuhv5o
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5b3NsYmNxcWR3dHJ5cWN4ZW5pIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODQzNDg0MCwiZXhwIjoyMDg0MDEwODQwfQ.U1RYScG3HtvLle95F2zvgs3so1mfUPlOHJrLDh7fHYA
+
+# JWT
+JWT_SECRET=7NY5X5Orz6pueeWrsdwQzmWjf4kInL0Dz6/MWXZvJkiBeaOlnx/paxGJVoh7wmGNXaLWDyO9BsLaQcQGTYxUjg==
+
+# Next.js
+NEXT_PUBLIC_SITE_URL=https://webfindpoint.vercel.app
