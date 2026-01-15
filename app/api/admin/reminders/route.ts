@@ -117,7 +117,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const reminder = reminderRepository.create({
+    // Create reminder using insert to avoid loading relations and cyclic dependency
+    const insertResult = await reminderRepository.insert({
       agencyId: finalAgencyId,
       type,
       title,
@@ -130,7 +131,17 @@ export async function POST(request: NextRequest) {
       notificationStatus: 'pending',
     })
 
-    await reminderRepository.save(reminder)
+    const reminderId = insertResult.identifiers[0].id
+
+    // Fetch the created reminder without relations to avoid cyclic dependency
+    const reminder = await reminderRepository.findOne({
+      where: { id: reminderId },
+      select: ['id', 'agencyId', 'type', 'title', 'description', 'dueDate', 'daysBeforeReminder', 'relatedEntityType', 'relatedEntityId', 'isCompleted', 'notificationStatus', 'lastNotifiedAt', 'notificationAttempts', 'completedAt', 'createdAt', 'updatedAt'],
+    })
+
+    if (!reminder) {
+      throw new Error('Reminder was created but could not be retrieved')
+    }
 
     return NextResponse.json(reminder, { status: 201 })
   } catch (error: any) {
