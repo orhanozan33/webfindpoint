@@ -29,15 +29,21 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   try {
+    // Get current pathname to check if we're on login page
+    const headersList = await headers()
+    const pathname = headersList.get('x-pathname') || ''
+    
+    // If we're on login page, render without layout (login has its own layout)
+    if (pathname === '/admin/login' || pathname.startsWith('/admin/login')) {
+      return <>{children}</>
+    }
+
     // Full JWT verification happens here (server-side only)
     const session = await getSession()
 
-    // If no session, let login page handle it (it has its own layout)
-    // Login page will be rendered without admin layout wrapper
+    // If no session and not on login page, redirect to login
     if (!session) {
-      // Check if we're trying to access login page - if so, just render children
-      // Otherwise redirect to login
-      return <>{children}</>
+      redirect('/admin/login')
     }
 
     // Role-based access control
