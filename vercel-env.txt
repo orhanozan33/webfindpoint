@@ -2,6 +2,10 @@
 DATABASE_URL=postgresql://postgres.wyoslbcqqdwtryqcxeni:orhanozan33@db.wyoslbcqqdwtryqcxeni.supabase.co:5432/postgres
 DB_SSL=true
 
+# WARNING: DB_SYNC=true will auto-create tables on first run
+# After tables are created, set DB_SYNC=false for production safety
+DB_SYNC=true
+
 # Alternative: Individual parameters (if DATABASE_URL is not used)
 # DB_HOST=db.wyoslbcqqdwtryqcxeni.supabase.co
 # DB_PORT=5432

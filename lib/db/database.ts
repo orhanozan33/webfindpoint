@@ -73,7 +73,9 @@ export const AppDataSource = new DataSource({
         ssl: dbConfig.ssl,
       }
   ),
-  synchronize: process.env.NODE_ENV !== 'production', // Auto-sync schema in development only
+  // WARNING: synchronize: true in production is not recommended for production use
+  // After initial setup, set this to false and use migrations instead
+  synchronize: process.env.DB_SYNC === 'true' || process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : false, // Reduced logging
   entities: [
     Agency,
