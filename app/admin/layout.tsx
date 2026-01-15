@@ -23,6 +23,14 @@ const MobileBottomNav = dynamic(() => import('@/components/admin/MobileBottomNav
   ssr: false,
 })
 
+const PageTransition = dynamic(() => import('@/components/admin/PageTransition').then((mod) => ({ default: mod.PageTransition })), {
+  ssr: false,
+})
+
+const LoadingBar = dynamic(() => import('@/components/admin/LoadingBar').then((mod) => ({ default: mod.LoadingBar })), {
+  ssr: false,
+})
+
 export default async function AdminLayout({
   children,
 }: {
@@ -62,6 +70,7 @@ export default async function AdminLayout({
       <div className="min-h-screen bg-neutral-50 relative overflow-x-hidden">
         {/* AnimatedNetwork disabled in admin for better performance */}
         {/* <AnimatedNetwork className="opacity-30" /> */}
+        <LoadingBar />
         <div className="relative z-10">
           <Suspense fallback={<div className="h-16 bg-white border-b border-neutral-200" />}>
             <AdminHeader session={session} />
@@ -69,7 +78,7 @@ export default async function AdminLayout({
           <div className="flex">
             <AdminSidebar />
             <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 pb-24 md:pb-8 overflow-x-hidden">
-              {children}
+              <PageTransition>{children}</PageTransition>
             </main>
           </div>
           <MobileBottomNav />

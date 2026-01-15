@@ -14,6 +14,11 @@ const ContactForm = dynamic(() => import('@/components/forms/ContactForm').then(
   ssr: false,
 })
 
+// Dynamic import for PhoneLink (client component)
+const PhoneLink = dynamic(() => import('@/components/contact/PhoneLink').then((mod) => ({ default: mod.PhoneLink })), {
+  ssr: false,
+})
+
 export async function generateMetadata({
   params,
 }: {
@@ -160,7 +165,10 @@ export default async function ContactPage({
           <div className="mt-6 sm:mt-8 text-center text-neutral-300 px-4">
             <p className="mb-2 text-sm sm:text-base">{messages.contact.info.location}</p>
             <p className="mb-2 text-sm sm:text-base">{messages.contact.info.response}</p>
-            <p className="text-cyan-400 text-sm sm:text-base">{messages.contact.info.phone}</p>
+            <PhoneLink 
+              phoneText={messages.contact.info.phone} 
+              className="text-cyan-400 text-sm sm:text-base"
+            />
           </div>
         </div>
       </div>

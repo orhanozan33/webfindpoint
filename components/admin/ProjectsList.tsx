@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ConfirmModal } from './ConfirmModal'
 
 interface ProjectsListProps {
   projects: Array<{
@@ -31,12 +32,16 @@ export function ProjectsList({ projects }: ProjectsListProps) {
   const router = useRouter()
   const [deleting, setDeleting] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null)
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`"${name}" projesini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)) {
-      return
-    }
+  const handleDeleteClick = (id: string, name: string) => {
+    setConfirmDelete({ id, name })
+  }
 
+  const handleDeleteConfirm = async () => {
+    if (!confirmDelete) return
+
+    const { id } = confirmDelete
     setDeleting(id)
     setError('')
 
@@ -46,14 +51,17 @@ export function ProjectsList({ projects }: ProjectsListProps) {
       })
 
       if (response.ok) {
+        setConfirmDelete(null)
         router.refresh()
       } else {
         const data = await response.json()
         setError(data.error || 'Proje silinemedi')
+        setConfirmDelete(null)
       }
     } catch (err) {
       setError('Bir hata oluştu. Lütfen tekrar deneyin.')
       console.error('Delete error:', err)
+      setConfirmDelete(null)
     } finally {
       setDeleting(null)
     }
@@ -87,12 +95,25 @@ export function ProjectsList({ projects }: ProjectsListProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
-          {error}
-        </div>
-      )}
+    <>
+      <ConfirmModal
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Projeyi Sil"
+        message={`"${confirmDelete?.name}" projesini silmek istediğinize emin misiniz? Bu işlem geri alınamaz ve projeye ait tüm ödemeler ve hosting servisleri de silinecektir.`}
+        confirmText="Sil"
+        cancelText="İptal"
+        variant="danger"
+        loading={deleting === confirmDelete?.id}
+      />
+
+      <div className="space-y-4">
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
+            {error}
+          </div>
+        )}
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
         {projects.map((project) => (
@@ -137,7 +158,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                 Düzenle
               </Link>
               <button
-                onClick={() => handleDelete(project.id, project.name)}
+                onClick={() => handleDeleteClick(project.id, project.name)}
                 disabled={deleting === project.id}
                 className="flex-1 text-center px-4 py-2 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
               >
@@ -197,7 +218,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
                       Düzenle
                     </Link>
                     <button
-                      onClick={() => handleDelete(project.id, project.name)}
+                      onClick={() => handleDeleteClick(project.id, project.name)}
                       disabled={deleting === project.id}
                       className="text-red-600 hover:text-red-700 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -211,5 +232,6 @@ export function ProjectsList({ projects }: ProjectsListProps) {
         </table>
       </div>
     </div>
+    </>
   )
 }

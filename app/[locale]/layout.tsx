@@ -13,6 +13,14 @@ const Footer = dynamic(() => import('@/components/layout/Footer').then((mod) => 
   ssr: false,
 })
 
+const PageTransition = dynamic(() => import('@/components/admin/PageTransition').then((mod) => ({ default: mod.PageTransition })), {
+  ssr: false,
+})
+
+const LoadingBar = dynamic(() => import('@/components/admin/LoadingBar').then((mod) => ({ default: mod.LoadingBar })), {
+  ssr: false,
+})
+
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }))
 }
@@ -43,11 +51,11 @@ export default async function LocaleLayout({
       <div className="relative min-h-screen bg-[#0a1628]">
         {/* Animated Network Background - Admin hariç tüm public sayfalarda */}
         <AnimatedNetwork className="opacity-60" />
-        
+        <LoadingBar />
         <div className="relative z-10">
           <Header />
           <main className="min-h-screen">
-            {children}
+            <PageTransition>{children}</PageTransition>
           </main>
           <Footer />
         </div>
