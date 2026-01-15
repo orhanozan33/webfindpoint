@@ -15,15 +15,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Login attempt for email:', email)
-
     // Initialize database with error handling
     let dataSource
     try {
       dataSource = await initializeDatabase()
-      console.log('Database initialized successfully')
     } catch (dbError: any) {
-      console.error('Database initialization error:', dbError)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Database initialization error:', dbError)
+      }
       return NextResponse.json(
         { error: 'Database connection failed. Please check your database configuration.' },
         { status: 500 }
@@ -38,7 +37,6 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user) {
-      console.log('User not found:', email)
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -46,22 +44,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user.isActive) {
-      console.log('User is inactive:', email)
       return NextResponse.json(
         { error: 'Account is inactive. Please contact administrator.' },
         { status: 401 }
       )
     }
 
-    console.log('User found:', user.email, 'Role:', user.role)
-
     // Compare password
     let isValidPassword = false
     try {
       isValidPassword = await user.comparePassword(password)
-      console.log('Password comparison result:', isValidPassword)
     } catch (pwdError) {
-      console.error('Password comparison error:', pwdError)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Password comparison error:', pwdError)
+      }
       return NextResponse.json(
         { error: 'Password verification failed' },
         { status: 500 }
@@ -69,7 +65,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isValidPassword) {
-      console.log('Invalid password for user:', email)
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -84,9 +79,10 @@ export async function POST(request: NextRequest) {
         role: user.role,
         agencyId: user.agencyId,
       })
-      console.log('Session created successfully for user:', user.email)
     } catch (sessionError) {
-      console.error('Session creation error:', sessionError)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Session creation error:', sessionError)
+      }
       return NextResponse.json(
         { error: 'Failed to create session' },
         { status: 500 }
@@ -103,10 +99,12 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error: any) {
-    console.error('Login error:', error)
-    console.error('Error stack:', error.stack)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Login error:', error)
+      console.error('Error stack:', error.stack)
+    }
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

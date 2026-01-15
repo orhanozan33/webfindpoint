@@ -84,6 +84,9 @@ export async function initializeDatabase() {
     // In development, allow localhost but warn
     if (process.env.NODE_ENV === 'development') {
       console.warn('⚠️  Warning: DB_HOST is localhost. Make sure your .env file is configured correctly.')
+    } else {
+      // In production, localhost is not allowed
+      throw new Error('DB_HOST cannot be localhost in production. Please set a valid database host.')
     }
   }
 
