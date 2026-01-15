@@ -45,7 +45,8 @@ export class Project extends BaseEntity {
   client!: any
 
   // Use lazy loading to avoid circular dependency with Payment
-  @OneToMany(() => require('./Payment').Payment, (payment: any) => payment.project)
+  // Note: Don't specify inverse side to avoid cyclic dependency
+  @OneToMany(() => require('./Payment').Payment, 'project')
   payments!: any[]
 
   @OneToMany(() => HostingService, (hosting) => hosting.project)

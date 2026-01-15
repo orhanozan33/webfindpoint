@@ -147,7 +147,9 @@ export async function POST(request: NextRequest) {
       paymentDate: paymentDate ? new Date(paymentDate) : undefined,
     })
 
-    const payment = paymentRepository.create({
+    // Create payment using insert to avoid loading relations and cyclic dependency
+    console.log('[PAYMENT CREATE] Inserting payment directly...')
+    const insertResult = await paymentRepository.insert({
       agencyId: finalAgencyId,
       projectId,
       amount: parsedAmount,
@@ -157,9 +159,18 @@ export async function POST(request: NextRequest) {
       notes: notes || undefined,
     })
 
-    console.log('[PAYMENT CREATE] Saving payment...')
-    await paymentRepository.save(payment)
-    console.log('[PAYMENT CREATE] Payment saved successfully:', payment.id)
+    const paymentId = insertResult.identifiers[0].id
+    console.log('[PAYMENT CREATE] Payment inserted successfully:', paymentId)
+
+    // Fetch the created payment without relations to avoid cyclic dependency
+    const payment = await paymentRepository.findOne({
+      where: { id: paymentId },
+      select: ['id', 'agencyId', 'projectId', 'amount', 'currency', 'status', 'paymentDate', 'notes', 'createdAt', 'updatedAt'],
+    })
+
+    if (!payment) {
+      throw new Error('Payment was created but could not be retrieved')
+    }
 
     return NextResponse.json(payment, { status: 201 })
   } catch (error: any) {
