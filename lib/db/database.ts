@@ -14,13 +14,33 @@ import { Agency } from '@/entities/Agency'
 import { Notification } from '@/entities/Notification'
 
 // PostgreSQL configuration for TypeORM
-export const AppDataSource = new DataSource({
-  type: 'postgres',
+const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432'),
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || '333333',
   database: process.env.DB_NAME || 'webfindpoint',
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+}
+
+// Debug: Log database config (without password)
+if (process.env.NODE_ENV === 'development') {
+  console.log('📊 Database Config:', {
+    host: dbConfig.host,
+    port: dbConfig.port,
+    username: dbConfig.username,
+    database: dbConfig.database,
+    ssl: dbConfig.ssl ? 'enabled' : 'disabled',
+  })
+}
+
+export const AppDataSource = new DataSource({
+  type: 'postgres',
+  host: dbConfig.host,
+  port: dbConfig.port,
+  username: dbConfig.username,
+  password: dbConfig.password,
+  database: dbConfig.database,
   synchronize: process.env.NODE_ENV !== 'production', // Auto-sync schema in development only
   logging: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : false, // Reduced logging
   entities: [
@@ -39,7 +59,7 @@ export const AppDataSource = new DataSource({
     Notification,
   ],
   migrations: [__dirname + '/../migrations/**/*.ts'],
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  ssl: dbConfig.ssl,
   // Performance optimizations
   extra: {
     max: 20, // Maximum number of connections in the pool
