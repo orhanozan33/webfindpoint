@@ -3,6 +3,34 @@ import { initializeDatabase } from '@/lib/db/database'
 import { User } from '@/entities/User'
 import { setSession } from '@/lib/auth/session'
 
+/**
+ * GET endpoint - Returns API information
+ */
+export async function GET() {
+  return NextResponse.json({
+    message: 'Admin Login API',
+    endpoint: '/api/auth/login',
+    method: 'POST',
+    description: 'Use POST method to login',
+    loginPage: '/admin/login',
+    requiredFields: {
+      email: 'string',
+      password: 'string',
+    },
+    example: {
+      url: '/api/auth/login',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: {
+        email: 'your-email@example.com',
+        password: 'your-password',
+      },
+    },
+  })
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
