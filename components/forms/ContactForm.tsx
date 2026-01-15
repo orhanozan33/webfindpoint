@@ -44,11 +44,14 @@ export function ContactForm({ messages }: ContactFormProps) {
         body: JSON.stringify(formData),
       })
 
-      if (response.ok) {
+      const data = await response.json()
+
+      if (response.ok || response.status === 201) {
         setStatus('success')
         setFormData({ name: '', email: '', message: '' })
         setTimeout(() => setStatus('idle'), 5000)
       } else {
+        console.error('Contact form error:', data)
         setStatus('error')
         setTimeout(() => setStatus('idle'), 5000)
       }
