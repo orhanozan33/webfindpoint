@@ -30,7 +30,8 @@ export class Payment extends BaseEntity {
   projectId!: string
 
   // Use lazy loading to avoid circular dependency with Project
-  @ManyToOne(() => require('./Project').Project, (project: any) => project.payments, { onDelete: 'CASCADE' })
+  // Note: Don't specify inverse side here to avoid cyclic dependency
+  @ManyToOne(() => require('./Project').Project, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'projectId' })
   project!: any
 }
