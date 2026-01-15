@@ -11,6 +11,7 @@
     "create-super-admin": "ts-node --project tsconfig.scripts.json -r tsconfig-paths/register scripts/create-super-admin.ts",
     "create-database": "ts-node --project tsconfig.scripts.json scripts/create-database.ts",
     "list-tables": "ts-node --project tsconfig.scripts.json -r tsconfig-paths/register scripts/list-tables.ts",
+    "migrate-to-supabase": "ts-node --project tsconfig.scripts.json -r tsconfig-paths/register scripts/migrate-to-supabase.ts",
     "typeorm": "typeorm-ts-node-commonjs"
   },
   "dependencies": {
