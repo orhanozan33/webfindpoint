@@ -1,8 +1,10 @@
 import { initializeDatabase } from '@/lib/db/database'
 import { Invoice } from '@/entities/Invoice'
+import { Agency } from '@/entities/Agency'
 import dynamicImport from 'next/dynamic'
 import Link from 'next/link'
 import { getSession } from '@/lib/auth/session'
+import { getAgencyContext } from '@/lib/multi-tenant/scope'
 import { hasPermission } from '@/lib/auth/roles'
 import { redirect } from 'next/navigation'
 
@@ -19,6 +21,15 @@ const InvoicesList = dynamicImport(() => import('@/components/admin/InvoicesList
   ),
 })
 
+const InvoiceSettings = dynamicImport(() => import('@/components/admin/InvoiceSettings').then((mod) => ({ default: mod.InvoiceSettings })), {
+  ssr: false,
+  loading: () => (
+    <div className="bg-white rounded-xl p-12 border border-neutral-200 text-center">
+      <p className="text-neutral-500">Yükleniyor...</p>
+    </div>
+  ),
+})
+
 export default async function InvoicesPage() {
   const session = await getSession()
   if (!session) {
@@ -26,9 +37,13 @@ export default async function InvoicesPage() {
   }
 
   let invoices: any[] = []
+  let agency: any = null
   
   try {
     const dataSource = await initializeDatabase()
+    const context = await getAgencyContext(session)
+    
+    // Get invoices
     const invoiceRepository = dataSource.getRepository(Invoice)
     const invoiceEntities = await invoiceRepository.find({
       relations: ['client', 'project'],
@@ -63,6 +78,19 @@ export default async function InvoicesPage() {
       createdAt: invoice.createdAt,
       updatedAt: invoice.updatedAt,
     }))
+
+    // Get agency for settings
+    if (context.agencyId) {
+      const agencyRepository = dataSource.getRepository(Agency)
+      const agencyEntity = await agencyRepository.findOne({ where: { id: context.agencyId } })
+      if (agencyEntity) {
+        agency = {
+          id: agencyEntity.id,
+          taxRate: agencyEntity.taxRate,
+          defaultCurrency: agencyEntity.defaultCurrency,
+        }
+      }
+    }
   } catch (error) {
     console.error('Error fetching invoices:', error)
   }
@@ -81,6 +109,10 @@ export default async function InvoicesPage() {
           + Fatura Oluştur
         </Link>
       </div>
+
+      {agency && (
+        <InvoiceSettings agency={agency} />
+      )}
 
       <InvoicesList invoices={invoices} />
     </div>
