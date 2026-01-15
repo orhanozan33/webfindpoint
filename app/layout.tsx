@@ -1,7 +1,13 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import { SmoothScrollProvider } from '@/components/motion/SmoothScrollProvider'
+import dynamic from 'next/dynamic'
+
+// Dynamic import to prevent useContext errors
+const SmoothScrollProvider = dynamic(
+  () => import('@/components/motion/SmoothScrollProvider').then((mod) => ({ default: mod.SmoothScrollProvider })),
+  { ssr: false }
+)
 
 const inter = Inter({ 
   subsets: ['latin'],
