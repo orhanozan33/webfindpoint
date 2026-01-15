@@ -39,9 +39,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
+    console.log('[PAYMENT CREATE] Request body:', { ...body, amount: body.amount })
     const { projectId, amount, currency, status, paymentDate, notes } = body
 
     if (!projectId) {
+      console.log('[PAYMENT CREATE] Validation failed: No projectId')
       return NextResponse.json(
         { error: 'Proje seçilmelidir' },
         { status: 400 }
@@ -49,6 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!amount || amount === '' || amount === null || amount === undefined) {
+      console.log('[PAYMENT CREATE] Validation failed: No amount')
       return NextResponse.json(
         { error: 'Tutar gereklidir' },
         { status: 400 }
@@ -57,17 +60,21 @@ export async function POST(request: NextRequest) {
 
     const parsedAmount = parseFloat(amount)
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      console.log('[PAYMENT CREATE] Validation failed: Invalid amount', { amount, parsedAmount })
       return NextResponse.json(
         { error: 'Geçerli bir tutar giriniz (0\'dan büyük olmalıdır)' },
         { status: 400 }
       )
     }
 
+    console.log('[PAYMENT CREATE] Initializing database...')
     const dataSource = await initializeDatabase()
     const paymentRepository = dataSource.getRepository(Payment)
     const context = await getAgencyContext(session)
+    console.log('[PAYMENT CREATE] Context:', { agencyId: context.agencyId, role: context.role })
 
     // Get project to get agencyId
+    console.log('[PAYMENT CREATE] Fetching project:', projectId)
     const projectRepository = dataSource.getRepository(require('@/entities/Project').Project)
     const project = await projectRepository.findOne({ 
       where: { id: projectId },
@@ -75,11 +82,13 @@ export async function POST(request: NextRequest) {
     })
     
     if (!project) {
+      console.error('[PAYMENT CREATE] Project not found:', projectId)
       return NextResponse.json(
         { error: 'Proje bulunamadı' },
         { status: 404 }
       )
     }
+    console.log('[PAYMENT CREATE] Project found:', { id: project.id, agencyId: project.agencyId })
 
     // Use project's agencyId if available, otherwise use context agencyId
     let finalAgencyId = project.agencyId || context.agencyId
@@ -122,12 +131,21 @@ export async function POST(request: NextRequest) {
 
     // Validate finalAgencyId before creating payment
     if (!finalAgencyId) {
-      console.error('Payment creation failed: No agencyId available', { context, project })
+      console.error('[PAYMENT CREATE] No agencyId available', { context, project })
       return NextResponse.json(
         { error: 'Agency bağlamı belirlenemedi. Lütfen yöneticinizle iletişime geçin.' },
         { status: 400 }
       )
     }
+
+    console.log('[PAYMENT CREATE] Creating payment with:', {
+      agencyId: finalAgencyId,
+      projectId,
+      amount: parsedAmount,
+      currency: currency || 'CAD',
+      status: status || 'unpaid',
+      paymentDate: paymentDate ? new Date(paymentDate) : undefined,
+    })
 
     const payment = paymentRepository.create({
       agencyId: finalAgencyId,
@@ -139,7 +157,9 @@ export async function POST(request: NextRequest) {
       notes: notes || undefined,
     })
 
+    console.log('[PAYMENT CREATE] Saving payment...')
     await paymentRepository.save(payment)
+    console.log('[PAYMENT CREATE] Payment saved successfully:', payment.id)
 
     return NextResponse.json(payment, { status: 201 })
   } catch (error: any) {
