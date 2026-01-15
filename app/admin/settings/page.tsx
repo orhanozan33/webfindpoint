@@ -1,5 +1,8 @@
 import dynamic from 'next/dynamic'
 
+// Force dynamic rendering because we use cookies in admin layout
+export const dynamic = 'force-dynamic'
+
 const SettingsForm = dynamic(
   () => import('@/components/admin/SettingsForm').then((mod) => ({ default: mod.SettingsForm })),
   {
