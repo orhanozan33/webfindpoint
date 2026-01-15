@@ -57,14 +57,21 @@ export function ReminderForm({ reminder }: ReminderFormProps) {
         body: JSON.stringify(payload),
       })
 
-      if (response.ok) {
+      if (response.ok || response.status === 201) {
         router.push('/admin/reminders')
         router.refresh()
       } else {
-        const data = await response.json()
-        setError(data.error || 'Hatırlatıcı kaydedilemedi')
+        try {
+          const data = await response.json()
+          console.error('Reminder form error:', data)
+          setError(data.error || 'Hatırlatıcı kaydedilemedi')
+        } catch (parseError) {
+          console.error('Reminder form error (no JSON body):', response.status, response.statusText)
+          setError(`Hatırlatıcı kaydedilemedi: ${response.status} ${response.statusText}`)
+        }
       }
     } catch (err) {
+      console.error('Reminder form network error:', err)
       setError('Bir hata oluştu. Lütfen tekrar deneyin.')
     } finally {
       setLoading(false)

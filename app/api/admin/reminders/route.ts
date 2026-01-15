@@ -133,11 +133,35 @@ export async function POST(request: NextRequest) {
     await reminderRepository.save(reminder)
 
     return NextResponse.json(reminder, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating reminder:', error)
+    console.error('Error details:', {
+      message: error?.message,
+      code: error?.code,
+      name: error?.name,
+      constraint: error?.constraint,
+      detail: error?.detail,
+      table: error?.table,
+      stack: error?.stack?.substring(0, 500)
+    })
+    
+    // Check for specific database constraint errors
+    if (error?.code === '23503' || error?.constraint) {
       return NextResponse.json(
-        { error: 'Hatırlatıcı oluşturulamadı' },
+        { 
+          error: 'Hatırlatıcı oluşturulamadı: Geçersiz bağlantı hatası',
+          details: process.env.NODE_ENV === 'development' ? `Constraint: ${error.constraint}, Table: ${error.table}` : undefined
+        },
         { status: 500 }
       )
+    }
+    
+    return NextResponse.json(
+      { 
+        error: 'Hatırlatıcı oluşturulamadı',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
+      { status: 500 }
+    )
   }
 }
