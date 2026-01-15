@@ -8,6 +8,11 @@ import { Portfolio } from '@/entities/Portfolio'
  */
 export async function GET() {
   try {
+    // Skip during build
+    if (process.env.NEXT_PHASE === 'phase-production-build') {
+      return NextResponse.json([])
+    }
+
     const dataSource = await initializeDatabase()
     const portfolioRepository = dataSource.getRepository(Portfolio)
     
@@ -36,11 +41,16 @@ export async function GET() {
     }))
 
     return NextResponse.json(serialized)
-  } catch (error) {
-    console.error('Error fetching portfolio items:', error)
-    return NextResponse.json(
-      { error: 'Portfolio items could not be fetched' },
-      { status: 500 }
-    )
+  } catch (error: any) {
+    // Log error details in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching portfolio items:', error)
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+    }
+    
+    // Return empty array instead of error to prevent UI crashes
+    // This allows the page to render even if database is unavailable
+    return NextResponse.json([])
   }
 }
