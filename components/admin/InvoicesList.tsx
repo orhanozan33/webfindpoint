@@ -1,6 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { ConfirmModal } from './ConfirmModal'
 
 interface InvoicesListProps {
   invoices: Array<{
@@ -33,6 +36,44 @@ interface InvoicesListProps {
 }
 
 export function InvoicesList({ invoices }: InvoicesListProps) {
+  const router = useRouter()
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [error, setError] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null)
+
+  const handleDeleteClick = (id: string, name: string) => {
+    setConfirmDelete({ id, name })
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!confirmDelete) return
+
+    const { id } = confirmDelete
+    setDeleting(id)
+    setError('')
+
+    try {
+      const response = await fetch(`/api/admin/invoices/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setConfirmDelete(null)
+        router.refresh()
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Fatura silinemedi')
+        setConfirmDelete(null)
+      }
+    } catch (err) {
+      setError('Bir hata oluştu. Lütfen tekrar deneyin.')
+      console.error('Delete error:', err)
+      setConfirmDelete(null)
+    } finally {
+      setDeleting(null)
+    }
+  }
+
   if (invoices.length === 0) {
     return (
       <div className="bg-white rounded-xl p-12 border border-neutral-200 text-center">
@@ -64,6 +105,24 @@ export function InvoicesList({ invoices }: InvoicesListProps) {
 
   return (
     <>
+      <ConfirmModal
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Faturayı Sil"
+        message={`"${confirmDelete?.name}" faturasını silmek istediğinize emin misiniz? Bu işlem geri alınamaz ve faturaya ait tüm öğeler de silinecektir.`}
+        confirmText="Sil"
+        cancelText="İptal"
+        variant="danger"
+        loading={deleting === confirmDelete?.id}
+      />
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm mb-4">
+          {error}
+        </div>
+      )}
+
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
       {invoices.map((invoice) => (
@@ -123,6 +182,13 @@ export function InvoicesList({ invoices }: InvoicesListProps) {
             >
               Düzenle
             </Link>
+            <button
+              onClick={() => handleDeleteClick(invoice.id, invoice.invoiceNumber)}
+              disabled={deleting === invoice.id}
+              className="px-4 py-2 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors touch-manipulation disabled:opacity-50"
+            >
+              {deleting === invoice.id ? 'Siliniyor...' : 'Sil'}
+            </button>
           </div>
         </div>
       ))}
@@ -172,7 +238,7 @@ export function InvoicesList({ invoices }: InvoicesListProps) {
                   </span>
                 </td>
                 <td className="px-4 lg:px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="flex items-center justify-end gap-3">
                     {invoice.pdfPath && (
                       <a
                         href={invoice.pdfPath}
@@ -189,6 +255,13 @@ export function InvoicesList({ invoices }: InvoicesListProps) {
                     >
                       Düzenle
                     </Link>
+                    <button
+                      onClick={() => handleDeleteClick(invoice.id, invoice.invoiceNumber)}
+                      disabled={deleting === invoice.id}
+                      className="text-red-600 hover:text-red-700 font-semibold text-sm disabled:opacity-50"
+                    >
+                      {deleting === invoice.id ? 'Siliniyor...' : 'Sil'}
+                    </button>
                   </div>
                 </td>
               </tr>

@@ -1,6 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { ConfirmModal } from './ConfirmModal'
 
 interface HostingListProps {
   hostingServices: Array<{
@@ -24,6 +27,44 @@ interface HostingListProps {
 }
 
 export function HostingList({ hostingServices }: HostingListProps) {
+  const router = useRouter()
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [error, setError] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null)
+
+  const handleDeleteClick = (id: string, name: string) => {
+    setConfirmDelete({ id, name })
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!confirmDelete) return
+
+    const { id } = confirmDelete
+    setDeleting(id)
+    setError('')
+
+    try {
+      const response = await fetch(`/api/admin/hosting/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setConfirmDelete(null)
+        router.refresh()
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Hosting hizmeti silinemedi')
+        setConfirmDelete(null)
+      }
+    } catch (err) {
+      setError('Bir hata oluştu. Lütfen tekrar deneyin.')
+      console.error('Delete error:', err)
+      setConfirmDelete(null)
+    } finally {
+      setDeleting(null)
+    }
+  }
+
   if (hostingServices.length === 0) {
     return (
       <div className="bg-white rounded-xl p-12 border border-neutral-200 text-center">
@@ -100,13 +141,20 @@ export function HostingList({ hostingServices }: HostingListProps) {
               </span>
             </div>
           </div>
-          <div className="pt-3 border-t border-neutral-200">
+          <div className="flex items-center gap-2 pt-3 border-t border-neutral-200">
             <Link
               href={`/admin/hosting/${hosting.id}`}
-              className="block w-full text-center px-4 py-2 text-sm font-semibold text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors touch-manipulation"
+              className="flex-1 text-center px-4 py-2 text-sm font-semibold text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors touch-manipulation"
             >
               Düzenle
             </Link>
+            <button
+              onClick={() => handleDeleteClick(hosting.id, hosting.provider)}
+              disabled={deleting === hosting.id}
+              className="px-4 py-2 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors touch-manipulation disabled:opacity-50"
+            >
+              {deleting === hosting.id ? 'Siliniyor...' : 'Sil'}
+            </button>
           </div>
         </div>
       ))}
@@ -173,12 +221,21 @@ export function HostingList({ hostingServices }: HostingListProps) {
                   </span>
                 </td>
                 <td className="px-4 lg:px-6 py-4 text-right">
-                  <Link
-                    href={`/admin/hosting/${hosting.id}`}
-                    className="text-primary-600 hover:text-primary-700 font-semibold text-sm"
-                  >
-                    Düzenle
-                  </Link>
+                  <div className="flex items-center justify-end gap-3">
+                    <Link
+                      href={`/admin/hosting/${hosting.id}`}
+                      className="text-primary-600 hover:text-primary-700 font-semibold text-sm"
+                    >
+                      Düzenle
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteClick(hosting.id, hosting.provider)}
+                      disabled={deleting === hosting.id}
+                      className="text-red-600 hover:text-red-700 font-semibold text-sm disabled:opacity-50"
+                    >
+                      {deleting === hosting.id ? 'Siliniyor...' : 'Sil'}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

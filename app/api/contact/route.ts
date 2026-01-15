@@ -68,11 +68,20 @@ export async function POST(request: NextRequest) {
 
             await notificationRepository.save(notification)
           }
-        } catch (dbError) {
+        } catch (dbError: any) {
           console.error('Database error:', dbError)
+          console.error('Database error details:', {
+            message: dbError?.message,
+            code: dbError?.code,
+            name: dbError?.name,
+            stack: dbError?.stack?.substring(0, 500)
+          })
           // In production, you might want to use an email service or external API
           return NextResponse.json(
-            { error: 'Failed to save contact submission' },
+            { 
+              error: 'Failed to save contact submission',
+              details: process.env.NODE_ENV === 'development' ? dbError?.message : undefined
+            },
             { status: 500 }
           )
         }
@@ -81,8 +90,14 @@ export async function POST(request: NextRequest) {
       { message: 'Contact form submitted successfully' },
       { status: 201 }
     )
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error saving contact:', error)
+    console.error('Error details:', {
+      message: error?.message,
+      code: error?.code,
+      name: error?.name,
+      stack: error?.stack?.substring(0, 500)
+    })
     
     // In development, return the error. In production, you might want to log it differently
     if (process.env.NODE_ENV === 'development') {
