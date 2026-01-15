@@ -26,66 +26,54 @@ export async function POST(request: NextRequest) {
       )
     }
 
-        // Initialize database connection
-        try {
-          const dataSource = await initializeDatabase()
-          const contactRepository = dataSource.getRepository(Contact)
-          const agencyRepository = dataSource.getRepository(Agency)
-          const notificationRepository = dataSource.getRepository(Notification)
+    // Initialize database connection
+    const dataSource = await initializeDatabase()
+    const contactRepository = dataSource.getRepository(Contact)
+    const agencyRepository = dataSource.getRepository(Agency)
+    const notificationRepository = dataSource.getRepository(Notification)
 
-          // Save contact message
-          const contact = contactRepository.create({
-            name,
-            email,
-            message,
-            status: 'new',
-          })
+    // Save contact message (this is the critical operation - must succeed)
+    const contact = contactRepository.create({
+      name,
+      email,
+      message,
+      status: 'new',
+    })
 
-          await contactRepository.save(contact)
+    await contactRepository.save(contact)
 
-          // Create notification for admin
-          // Find first active agency (or create notification for all agencies)
-          const agencies = await agencyRepository.find({
-            where: { isActive: true },
-            take: 1,
-          })
+    // Create notification for admin (this is optional - don't fail if it errors)
+    try {
+      const agencies = await agencyRepository.find({
+        where: { isActive: true },
+        take: 1,
+      })
 
-          if (agencies.length > 0) {
-            const agencyId = agencies[0].id
+      if (agencies.length > 0) {
+        const agencyId = agencies[0].id
 
-            // Create notification
-            const notification = notificationRepository.create({
-              agencyId,
-              type: 'contact_submission',
-              title: `Yeni İletişim Mesajı: ${name}`,
-              message: `${email} adresinden yeni bir mesaj geldi: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`,
-              link: '/admin/contacts',
-              severity: 'info',
-              relatedEntityType: 'contact',
-              relatedEntityId: contact.id,
-              isRead: false,
-            })
+        // Create notification
+        const notification = notificationRepository.create({
+          agencyId,
+          type: 'contact_submission',
+          title: `Yeni İletişim Mesajı: ${name}`,
+          message: `${email} adresinden yeni bir mesaj geldi: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`,
+          link: '/admin/contacts',
+          severity: 'info',
+          relatedEntityType: 'contact',
+          relatedEntityId: contact.id,
+          isRead: false,
+        })
 
-            await notificationRepository.save(notification)
-          }
-        } catch (dbError: any) {
-          console.error('Database error:', dbError)
-          console.error('Database error details:', {
-            message: dbError?.message,
-            code: dbError?.code,
-            name: dbError?.name,
-            stack: dbError?.stack?.substring(0, 500)
-          })
-          // In production, you might want to use an email service or external API
-          return NextResponse.json(
-            { 
-              error: 'Failed to save contact submission',
-              details: process.env.NODE_ENV === 'development' ? dbError?.message : undefined
-            },
-            { status: 500 }
-          )
-        }
+        await notificationRepository.save(notification)
+      }
+    } catch (notificationError: any) {
+      // Log notification error but don't fail the request
+      console.error('Failed to create notification (contact was saved):', notificationError)
+      // Continue - the contact message was successfully saved
+    }
 
+    // Always return success if contact was saved, even if notification failed
     return NextResponse.json(
       { message: 'Contact form submitted successfully' },
       { status: 201 }

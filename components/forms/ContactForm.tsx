@@ -163,10 +163,10 @@ export function ContactForm({ messages }: ContactFormProps) {
             id="message"
             name="message"
             required
-            rows={3}
+            rows={2}
             value={formData.message}
             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-            className="w-full px-4 py-3 sm:py-3.5 bg-white text-black border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all resize-none placeholder:text-neutral-400 text-base touch-manipulation min-h-[65px]"
+            className="w-full px-4 py-2.5 sm:py-3 bg-white text-black border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all resize-none placeholder:text-neutral-400 text-base touch-manipulation min-h-[50px]"
             placeholder={messages.form.message}
             whileFocus={{ scale: 1.01 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
