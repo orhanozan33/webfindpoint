@@ -20,11 +20,15 @@ export async function POST(request: NextRequest) {
     try {
       dataSource = await initializeDatabase()
     } catch (dbError: any) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Database initialization error:', dbError)
-      }
+      // Log error in both development and production for debugging
+      console.error('Database initialization error:', dbError)
+      console.error('Error message:', dbError?.message)
+      console.error('Error stack:', dbError?.stack)
       return NextResponse.json(
-        { error: 'Database connection failed. Please check your database configuration.' },
+        { 
+          error: 'Database connection failed. Please check your database configuration.',
+          details: process.env.NODE_ENV === 'development' ? dbError?.message : undefined
+        },
         { status: 500 }
       )
     }
@@ -32,9 +36,22 @@ export async function POST(request: NextRequest) {
     const userRepository = dataSource.getRepository(User)
 
     // Find user (check both active and inactive for debugging)
-    const user = await userRepository.findOne({
-      where: { email },
-    })
+    let user
+    try {
+      user = await userRepository.findOne({
+        where: { email },
+      })
+    } catch (queryError: any) {
+      console.error('User query error:', queryError)
+      console.error('Error message:', queryError?.message)
+      return NextResponse.json(
+        { 
+          error: 'Database query failed',
+          details: process.env.NODE_ENV === 'development' ? queryError?.message : undefined
+        },
+        { status: 500 }
+      )
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -53,13 +70,23 @@ export async function POST(request: NextRequest) {
     // Compare password
     let isValidPassword = false
     try {
-      isValidPassword = await user.comparePassword(password)
-    } catch (pwdError) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Password comparison error:', pwdError)
+      if (!user.password) {
+        console.error('User password is missing')
+        return NextResponse.json(
+          { error: 'Password verification failed - user password not found' },
+          { status: 500 }
+        )
       }
+      isValidPassword = await user.comparePassword(password)
+    } catch (pwdError: any) {
+      console.error('Password comparison error:', pwdError)
+      console.error('Error message:', pwdError?.message)
+      console.error('Error stack:', pwdError?.stack)
       return NextResponse.json(
-        { error: 'Password verification failed' },
+        { 
+          error: 'Password verification failed',
+          details: process.env.NODE_ENV === 'development' ? pwdError?.message : undefined
+        },
         { status: 500 }
       )
     }
@@ -79,12 +106,15 @@ export async function POST(request: NextRequest) {
         role: user.role,
         agencyId: user.agencyId,
       })
-    } catch (sessionError) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Session creation error:', sessionError)
-      }
+    } catch (sessionError: any) {
+      console.error('Session creation error:', sessionError)
+      console.error('Error message:', sessionError?.message)
+      console.error('Error stack:', sessionError?.stack)
       return NextResponse.json(
-        { error: 'Failed to create session' },
+        { 
+          error: 'Failed to create session',
+          details: process.env.NODE_ENV === 'development' ? sessionError?.message : undefined
+        },
         { status: 500 }
       )
     }
@@ -99,12 +129,15 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error: any) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Login error:', error)
-      console.error('Error stack:', error.stack)
-    }
+    // Always log errors for debugging in production
+    console.error('Login error:', error)
+    console.error('Error message:', error?.message)
+    console.error('Error stack:', error?.stack)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
       { status: 500 }
     )
   }
