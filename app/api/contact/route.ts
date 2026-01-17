@@ -3,6 +3,7 @@ import { initializeDatabase } from '@/lib/db/database'
 import { Contact } from '@/entities/Contact'
 import { Notification } from '@/entities/Notification'
 import { Agency } from '@/entities/Agency'
+import { sendWebhookNotification } from '@/lib/webhooks/send'
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,6 +67,24 @@ export async function POST(request: NextRequest) {
         })
 
         await notificationRepository.save(notification)
+
+        // Send webhook notification (optional - don't fail if it errors)
+        try {
+          await sendWebhookNotification({
+            type: 'FORM',
+            title: `Yeni İletişim Mesajı: ${name}`,
+            message: `${email} adresinden yeni bir mesaj geldi: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`,
+            data: {
+              link: '/admin/contacts',
+              agencyId,
+              relatedEntityType: 'contact',
+              relatedEntityId: contact.id,
+            },
+          })
+        } catch (webhookError: any) {
+          // Log webhook error but don't fail the request
+          console.error('Failed to send webhook (contact was saved):', webhookError)
+        }
       }
     } catch (notificationError: any) {
       // Log notification error but don't fail the request
