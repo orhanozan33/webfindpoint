@@ -47,33 +47,38 @@ export async function POST(request: NextRequest) {
     try {
       const agencies = await agencyRepository.find({
         where: { isActive: true },
-        take: 1,
       })
 
       if (agencies.length > 0) {
-        const agencyId = agencies[0].id
+        const preview = `${email} adresinden yeni bir mesaj geldi: ${message.substring(0, 100)}${
+          message.length > 100 ? '...' : ''
+        }`
 
-        // Create notification
-        const notification = notificationRepository.create({
-          agencyId,
-          type: 'contact_submission',
-          title: `Yeni İletişim Mesajı: ${name}`,
-          message: `${email} adresinden yeni bir mesaj geldi: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`,
-          link: '/admin/contacts',
-          severity: 'info',
-          relatedEntityType: 'contact',
-          relatedEntityId: contact.id,
-          isRead: false,
-        })
+        // Create one notification per active agency so all agency admins get the alert
+        const notifications = agencies.map((agency) =>
+          notificationRepository.create({
+            agencyId: agency.id,
+            type: 'contact_submission',
+            title: `Yeni İletişim Mesajı: ${name}`,
+            message: preview,
+            link: '/admin/contacts',
+            severity: 'info',
+            relatedEntityType: 'contact',
+            relatedEntityId: contact.id,
+            isRead: false,
+          })
+        )
 
-        await notificationRepository.save(notification)
+        await notificationRepository.save(notifications)
 
         // Send webhook notification (optional - don't fail if it errors)
+        // Use first agencyId as context if available
+        const agencyId = agencies[0].id
         try {
           await sendWebhookNotification({
             type: 'FORM',
             title: `Yeni İletişim Mesajı: ${name}`,
-            message: `${email} adresinden yeni bir mesaj geldi: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`,
+            message: preview,
             data: {
               link: '/admin/contacts',
               agencyId,

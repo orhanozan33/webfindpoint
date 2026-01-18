@@ -24,15 +24,21 @@ export async function GET(request: NextRequest) {
   const agencyRepository = dataSource.getRepository(Agency)
 
   // Backfill: turn "new" contact submissions into notifications (if missing).
-  // This prevents the UI from showing "X yeni" while the list is empty.
+  // Important: notifications are scoped by agency for non-super-admin users, so we must
+  // create/check per-agency to ensure every agency admin sees the alert.
   try {
-    let agencyId = context.agencyId
-    if (!agencyId) {
-      const agency = await agencyRepository.findOne({ where: { isActive: true } })
-      agencyId = agency?.id
+    let targetAgencyIds: string[] = []
+    if (context.role === 'super_admin') {
+      const agencies = await agencyRepository.find({ where: { isActive: true }, select: ['id'] })
+      targetAgencyIds = agencies.map((a) => a.id)
+    } else if (context.agencyId) {
+      targetAgencyIds = [context.agencyId]
+    } else {
+      const agency = await agencyRepository.findOne({ where: { isActive: true }, select: ['id'] })
+      if (agency?.id) targetAgencyIds = [agency.id]
     }
 
-    if (agencyId) {
+    if (targetAgencyIds.length > 0) {
       const newContacts = await contactRepository.find({
         where: { status: 'new' },
         order: { createdAt: 'DESC' },
@@ -46,27 +52,36 @@ export async function GET(request: NextRequest) {
           .where('notification.type = :type', { type: 'contact_submission' })
           .andWhere('notification.relatedEntityType = :ret', { ret: 'contact' })
           .andWhere('notification.relatedEntityId IN (:...ids)', { ids })
+          .andWhere('notification.agencyId IN (:...agencyIds)', { agencyIds: targetAgencyIds })
           .getMany()
 
-        const existingIds = new Set(existing.map((n) => n.relatedEntityId))
-        const toCreate = newContacts
-          .filter((c) => !existingIds.has(c.id))
-          .map((c) =>
-            notificationRepository.create({
-              agencyId,
-              // userId intentionally left NULL so all admins can see it
-              type: 'contact_submission',
-              title: `Yeni İletişim Mesajı: ${c.name}`,
-              message: `${c.email} adresinden yeni bir mesaj geldi: ${c.message.substring(0, 100)}${
-                c.message.length > 100 ? '...' : ''
-              }`,
-              link: '/admin/contacts',
-              severity: 'info',
-              relatedEntityType: 'contact',
-              relatedEntityId: c.id,
-              isRead: false,
-            })
-          )
+        const existingKeys = new Set(
+          existing.map((n) => `${n.agencyId}:${n.relatedEntityId}`)
+        )
+
+        const toCreate: Notification[] = []
+        for (const agencyId of targetAgencyIds) {
+          for (const c of newContacts) {
+            const key = `${agencyId}:${c.id}`
+            if (existingKeys.has(key)) continue
+            toCreate.push(
+              notificationRepository.create({
+                agencyId,
+                // userId intentionally left NULL so all admins can see it
+                type: 'contact_submission',
+                title: `Yeni İletişim Mesajı: ${c.name}`,
+                message: `${c.email} adresinden yeni bir mesaj geldi: ${c.message.substring(0, 100)}${
+                  c.message.length > 100 ? '...' : ''
+                }`,
+                link: '/admin/contacts',
+                severity: 'info',
+                relatedEntityType: 'contact',
+                relatedEntityId: c.id,
+                isRead: false,
+              })
+            )
+          }
+        }
 
         if (toCreate.length > 0) {
           await notificationRepository.save(toCreate)
