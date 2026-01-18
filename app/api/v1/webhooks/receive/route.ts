@@ -60,15 +60,21 @@ export async function POST(request: NextRequest) {
     const notificationRepository = dataSource.getRepository(Notification)
     const agencyRepository = dataSource.getRepository(Agency)
 
-    // Get active agencies.
-    // If data.agencyId is not provided, create the notification for all active agencies so every agency admin sees it.
-    const agencies = await agencyRepository.find({
-      where: { isActive: true },
-    })
+    // Get agencies.
+    // If none exist yet, create a default one so notifications can be scoped properly.
+    let agencies = await agencyRepository.find()
+    if (agencies.length === 0) {
+      const defaultAgency = agencyRepository.create({
+        name: 'FindPoint Agency',
+        domain: 'findpoint.ca',
+        isActive: true,
+      })
+      agencies = [await agencyRepository.save(defaultAgency)]
+    }
 
     if (agencies.length === 0) {
       return NextResponse.json(
-        { error: 'No active agency found' },
+        { error: 'No agency found' },
         { status: 500 }
       )
     }

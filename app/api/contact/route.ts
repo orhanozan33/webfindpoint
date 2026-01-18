@@ -45,16 +45,23 @@ export async function POST(request: NextRequest) {
 
     // Create notification for admin (this is optional - don't fail if it errors)
     try {
-      const agencies = await agencyRepository.find({
-        where: { isActive: true },
-      })
+      let agencies = await agencyRepository.find()
+      if (agencies.length === 0) {
+        // If no agency exists yet, create a default one so notifications can be scoped properly
+        const defaultAgency = agencyRepository.create({
+          name: 'FindPoint Agency',
+          domain: 'findpoint.ca',
+          isActive: true,
+        })
+        agencies = [await agencyRepository.save(defaultAgency)]
+      }
 
       if (agencies.length > 0) {
         const preview = `${email} adresinden yeni bir mesaj geldi: ${message.substring(0, 100)}${
           message.length > 100 ? '...' : ''
         }`
 
-        // Create one notification per active agency so all agency admins get the alert
+        // Create one notification per agency so all agency admins get the alert (agency-scoped)
         const notifications = agencies.map((agency) =>
           notificationRepository.create({
             agencyId: agency.id,

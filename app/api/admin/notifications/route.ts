@@ -29,12 +29,12 @@ export async function GET(request: NextRequest) {
   try {
     let targetAgencyIds: string[] = []
     if (context.role === 'super_admin') {
-      const agencies = await agencyRepository.find({ where: { isActive: true }, select: ['id'] })
+      const agencies = await agencyRepository.find({ select: ['id'] })
       targetAgencyIds = agencies.map((a) => a.id)
     } else if (context.agencyId) {
       targetAgencyIds = [context.agencyId]
     } else {
-      const agency = await agencyRepository.findOne({ where: { isActive: true }, select: ['id'] })
+      const agency = await agencyRepository.findOne({ select: ['id'] })
       if (agency?.id) targetAgencyIds = [agency.id]
     }
 
