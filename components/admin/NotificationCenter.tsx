@@ -27,7 +27,7 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
       if (response.ok) {
         const data = await response.json()
         setNotifications(data.notifications || [])
-        // Total unread count includes both notifications and unread contacts
+        // Total unread count matches notifications list
         setUnreadCount(data.unreadCount || 0)
       }
     } catch (error) {
