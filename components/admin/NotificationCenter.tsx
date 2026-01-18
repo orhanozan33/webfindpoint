@@ -206,10 +206,10 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
                                 )}
                                 <span
                                   className={`px-2 py-1 text-xs font-semibold rounded border ${getSeverityColor(
-                                    notification.severity
+                                    notification.severity || 'info'
                                   )}`}
                                 >
-                                  {notification.severity}
+                                  {notification.severity || 'info'}
                                 </span>
                               </div>
                             </div>
