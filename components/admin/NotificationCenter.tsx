@@ -2,27 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-type UINotification = {
-  id: string
-  title: string
-  message?: string | null
-  link?: string | null
-  type?: string
-  severity?: string
-  isRead: boolean
-  createdAt: string | Date
-}
+import { Notification } from '@/entities/Notification'
 
 interface NotificationCenterProps {
   agencyId?: string
 }
 
 export function NotificationCenter({ agencyId }: NotificationCenterProps) {
-  const [notifications, setNotifications] = useState<UINotification[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string>('')
 
   useEffect(() => {
     fetchNotifications()
@@ -34,27 +24,14 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
   const fetchNotifications = async () => {
     try {
       const response = await fetch('/api/admin/notifications')
-      if (response.status === 401) {
-        setNotifications([])
-        setUnreadCount(0)
-        setError('Oturum süresi doldu. Tekrar giriş yapın.')
-        return
-      }
-      if (!response.ok) {
-        const text = await response.text()
-        setError(`Bildirimler yüklenemedi (HTTP ${response.status}). ${text.substring(0, 120)}`)
-        return
-      }
       if (response.ok) {
         const data = await response.json()
         setNotifications(data.notifications || [])
-        // Total unread count matches notifications list
+        // Total unread count includes both notifications and unread contacts
         setUnreadCount(data.unreadCount || 0)
-        setError('')
       }
     } catch (error) {
       console.error('Error fetching notifications:', error)
-      setError('Bildirimler yüklenemedi. (Ağ/DB bağlantısı hatası)')
     } finally {
       setLoading(false)
     }
@@ -171,10 +148,6 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
                   <div className="p-8 text-center text-neutral-500">
                     Yükleniyor...
                   </div>
-                ) : error ? (
-                  <div className="p-4 text-sm text-red-800 bg-red-50 border-t border-red-100">
-                    {error}
-                  </div>
                 ) : notifications.length === 0 ? (
                   <div className="p-8 text-center text-neutral-500">
                     Bildirim yok
@@ -219,10 +192,10 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
                                 )}
                                 <span
                                   className={`px-2 py-1 text-xs font-semibold rounded border ${getSeverityColor(
-                                    notification.severity || 'info'
+                                    notification.severity
                                   )}`}
                                 >
-                                  {notification.severity || 'info'}
+                                  {notification.severity}
                                 </span>
                               </div>
                             </div>

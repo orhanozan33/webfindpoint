@@ -16,23 +16,13 @@ import { Notification } from '@/entities/Notification'
 // PostgreSQL configuration for TypeORM
 // Support both connection string and individual parameters
 const getDbConfig = () => {
-  // Prefer connection strings (support multiple env var names used by hosts)
-  const connectionString =
-    process.env.DATABASE_URL ||
-    process.env.SUPABASE_DATABASE_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.POSTGRES_URL_NON_POOLING ||
-    process.env.POSTGRESQL_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    process.env.DATABASE_URL_NON_POOLING
-
   // If connection string is provided, use it
-  if (connectionString) {
+  if (process.env.DATABASE_URL) {
     // For Supabase and production, always use SSL with rejectUnauthorized: false
     // This handles self-signed certificates in certificate chain
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL
     return {
-      url: connectionString,
+      url: process.env.DATABASE_URL,
       ssl: isProduction || process.env.DB_SSL === 'true' 
         ? { rejectUnauthorized: false } 
         : false,
@@ -130,17 +120,8 @@ export async function initializeDatabase() {
     throw new Error('Database initialization skipped during build')
   }
 
-  // Check if environment variables are set (connection string OR host params)
-  const hasAnyConnectionString =
-    !!process.env.DATABASE_URL ||
-    !!process.env.SUPABASE_DATABASE_URL ||
-    !!process.env.POSTGRES_URL ||
-    !!process.env.POSTGRES_URL_NON_POOLING ||
-    !!process.env.POSTGRESQL_URL ||
-    !!process.env.POSTGRES_PRISMA_URL ||
-    !!process.env.DATABASE_URL_NON_POOLING
-
-  if (!hasAnyConnectionString) {
+  // Check if environment variables are set
+  if (!process.env.DATABASE_URL) {
     if (!process.env.DB_HOST || process.env.DB_HOST === 'localhost') {
       // In development, allow localhost but warn
       if (process.env.NODE_ENV === 'development') {

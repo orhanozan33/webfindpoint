@@ -60,26 +60,20 @@ export async function POST(request: NextRequest) {
     const notificationRepository = dataSource.getRepository(Notification)
     const agencyRepository = dataSource.getRepository(Agency)
 
-    // Get agencies.
-    // If none exist yet, create a default one so notifications can be scoped properly.
-    let agencies = await agencyRepository.find()
-    if (agencies.length === 0) {
-      const defaultAgency = agencyRepository.create({
-        name: 'FindPoint Agency',
-        domain: 'findpoint.ca',
-        isActive: true,
-      })
-      agencies = [await agencyRepository.save(defaultAgency)]
-    }
+    // Get first active agency (or use data.agencyId if provided)
+    const agencies = await agencyRepository.find({
+      where: { isActive: true },
+      take: 1,
+    })
 
     if (agencies.length === 0) {
       return NextResponse.json(
-        { error: 'No agency found' },
+        { error: 'No active agency found' },
         { status: 500 }
       )
     }
 
-    const targetAgencyIds: string[] = data?.agencyId ? [data.agencyId] : agencies.map((a) => a.id)
+    const agencyId = data?.agencyId || agencies[0].id
 
     // Map webhook type to notification severity
     const getSeverity = (webhookType: string) => {
@@ -112,29 +106,28 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const notifications = targetAgencyIds.map((agencyId) =>
-      notificationRepository.create({
-        agencyId,
-        type: getNotificationType(type),
-        title,
-        message: message || '',
-        link: data?.link || null,
-        severity: getSeverity(type),
-        relatedEntityType: data?.relatedEntityType || null,
-        relatedEntityId: data?.relatedEntityId || null,
-        isRead: false,
-      })
-    )
+    // Create notification
+    const notification = notificationRepository.create({
+      agencyId,
+      type: getNotificationType(type),
+      title,
+      message: message || '',
+      link: data?.link || null,
+      severity: getSeverity(type),
+      relatedEntityType: data?.relatedEntityType || null,
+      relatedEntityId: data?.relatedEntityId || null,
+      isRead: false,
+    })
 
-    const saved = await notificationRepository.save(notifications)
+    await notificationRepository.save(notification)
 
     return NextResponse.json({
       success: true,
       notification: {
-        id: saved[0]?.id,
-        type: saved[0]?.type,
-        title: saved[0]?.title,
-        createdAt: saved[0]?.createdAt,
+        id: notification.id,
+        type: notification.type,
+        title: notification.title,
+        createdAt: notification.createdAt,
       },
     }, { status: 201 })
   } catch (error: any) {

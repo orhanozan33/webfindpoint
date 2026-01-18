@@ -3,26 +3,16 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { SessionPayload } from '@/lib/auth/session'
-type UINotification = {
-  id: string
-  title: string
-  message?: string | null
-  link?: string | null
-  type?: string
-  severity?: string
-  isRead: boolean
-  createdAt: string | Date
-}
+import { Notification } from '@/entities/Notification'
 
 interface NotificationPreviewProps {
   session: SessionPayload
 }
 
 export function NotificationPreview({ session }: NotificationPreviewProps) {
-  const [notifications, setNotifications] = useState<UINotification[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string>('')
 
   useEffect(() => {
     fetchNotifications()
@@ -31,27 +21,13 @@ export function NotificationPreview({ session }: NotificationPreviewProps) {
   const fetchNotifications = async () => {
     try {
       const response = await fetch('/api/admin/notifications?limit=5')
-      if (response.status === 401) {
-        // Session expired / not authorized
-        setNotifications([])
-        setUnreadCount(0)
-        setError('Oturum süresi doldu. Lütfen tekrar giriş yapın.')
-        return
-      }
-      if (!response.ok) {
-        const text = await response.text()
-        setError(`Bildirimler yüklenemedi (HTTP ${response.status}). ${text.substring(0, 120)}`)
-        return
-      }
       if (response.ok) {
         const data = await response.json()
-        setNotifications((data.notifications || []) as UINotification[])
+        setNotifications(data.notifications || [])
         setUnreadCount(data.unreadCount || 0)
-        setError('')
       }
     } catch (error) {
       console.error('Error fetching notifications:', error)
-      setError('Bildirimler yüklenemedi. (Ağ/DB bağlantısı hatası)')
     } finally {
       setLoading(false)
     }
@@ -84,11 +60,6 @@ export function NotificationPreview({ session }: NotificationPreviewProps) {
           </Link>
         </div>
       </div>
-      {error && (
-        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-          {error}
-        </div>
-      )}
       {notifications.length === 0 ? (
         <p className="text-neutral-500 text-sm">Bildirim yok</p>
       ) : (

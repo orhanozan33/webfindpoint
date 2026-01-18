@@ -3,7 +3,6 @@ import { authorize } from '@/lib/auth/authorize'
 import { initializeDatabase } from '@/lib/db/database'
 import { Notification } from '@/entities/Notification'
 import { Contact } from '@/entities/Contact'
-import { Agency } from '@/entities/Agency'
 import { scopeToAgency, getAgencyContext } from '@/lib/multi-tenant/scope'
 
 export async function GET(request: NextRequest) {
@@ -13,97 +12,9 @@ export async function GET(request: NextRequest) {
   }
 
   const context = await getAgencyContext(auth.session!)
-  const url = new URL(request.url)
-  const limitParam = url.searchParams.get('limit')
-  const limitRaw = limitParam ? Number(limitParam) : 50
-  const limit = Number.isFinite(limitRaw) ? Math.min(100, Math.max(1, limitRaw)) : 50
-
   const dataSource = await initializeDatabase()
   const notificationRepository = dataSource.getRepository(Notification)
   const contactRepository = dataSource.getRepository(Contact)
-  const agencyRepository = dataSource.getRepository(Agency)
-
-  // Ensure at least one agency exists (required for agency-scoped notifications)
-  let allAgencies = await agencyRepository.find({ select: ['id', 'isActive'] })
-  if (allAgencies.length === 0) {
-    const created = await agencyRepository.save(
-      agencyRepository.create({
-        name: 'FindPoint Agency',
-        domain: 'findpoint.ca',
-        isActive: true,
-      })
-    )
-    allAgencies = [{ id: created.id, isActive: created.isActive } as any]
-  }
-
-  // Backfill: turn "new" contact submissions into notifications (if missing).
-  // Important: notifications are scoped by agency for non-super-admin users, so we must
-  // create/check per-agency to ensure every agency admin sees the alert.
-  try {
-    let targetAgencyIds: string[] = []
-    if (context.role === 'super_admin') {
-      targetAgencyIds = allAgencies.map((a) => a.id)
-    } else if (context.agencyId) {
-      targetAgencyIds = [context.agencyId]
-    } else {
-      const first = allAgencies[0]
-      if (first?.id) targetAgencyIds = [first.id]
-    }
-
-    if (targetAgencyIds.length > 0) {
-      const newContacts = await contactRepository.find({
-        where: { status: 'new' },
-        order: { createdAt: 'DESC' },
-        take: 50,
-      })
-
-      if (newContacts.length > 0) {
-        const ids = newContacts.map((c) => c.id)
-        const existing = await notificationRepository
-          .createQueryBuilder('notification')
-          .where('notification.type = :type', { type: 'contact_submission' })
-          .andWhere('notification.relatedEntityType = :ret', { ret: 'contact' })
-          .andWhere('notification.relatedEntityId IN (:...ids)', { ids })
-          .andWhere('notification.agencyId IN (:...agencyIds)', { agencyIds: targetAgencyIds })
-          .getMany()
-
-        const existingKeys = new Set(
-          existing.map((n) => `${n.agencyId}:${n.relatedEntityId}`)
-        )
-
-        const toCreate: Notification[] = []
-        for (const agencyId of targetAgencyIds) {
-          for (const c of newContacts) {
-            const key = `${agencyId}:${c.id}`
-            if (existingKeys.has(key)) continue
-            toCreate.push(
-              notificationRepository.create({
-                agencyId,
-                // userId intentionally left NULL so all admins can see it
-                type: 'contact_submission',
-                title: `Yeni İletişim Mesajı: ${c.name}`,
-                message: `${c.email} adresinden yeni bir mesaj geldi: ${c.message.substring(0, 100)}${
-                  c.message.length > 100 ? '...' : ''
-                }`,
-                link: '/admin/contacts',
-                severity: 'info',
-                relatedEntityType: 'contact',
-                relatedEntityId: c.id,
-                isRead: false,
-              })
-            )
-          }
-        }
-
-        if (toCreate.length > 0) {
-          await notificationRepository.save(toCreate)
-        }
-      }
-    }
-  } catch (error) {
-    // Never fail the request due to backfill
-    console.error('Error backfilling contact notifications:', error)
-  }
 
   let query = notificationRepository
     .createQueryBuilder('notification')
@@ -111,56 +22,40 @@ export async function GET(request: NextRequest) {
       userId: context.userId,
     })
     .orderBy('notification.createdAt', 'DESC')
-    .take(limit)
+    .take(50)
 
   // Scope to agency (unless super admin)
   query = scopeToAgency(query, context, 'notification')
 
   const notifications = await query.getMany()
+  const unreadNotificationCount = notifications.filter((n) => !n.isRead).length
 
-  // Accurate unread count (not limited by `limit`)
-  let unreadQuery = notificationRepository
-    .createQueryBuilder('notification')
-    .where('notification.isRead = :isRead', { isRead: false })
-    .andWhere('(notification.userId = :userId OR notification.userId IS NULL)', {
-      userId: context.userId,
-    })
-  unreadQuery = scopeToAgency(unreadQuery, context, 'notification')
-
-  const unreadNotificationCount = await unreadQuery.getCount()
-
-  // Count "new" contacts that still don't have an unread contact_submission notification in-scope.
-  // This ensures the bell badge increases when a message arrives even if a notification row failed to insert.
-  let missingContactCount = 0
+  // Get unread contact submissions count
+  let unreadContactCount = 0
   try {
-    const newContactsCount = await contactRepository.count({ where: { status: 'new' } })
-
-    let represented = notificationRepository
-      .createQueryBuilder('notification')
-      .select('COUNT(DISTINCT notification.relatedEntityId)', 'count')
-      .where('notification.isRead = :isRead', { isRead: false })
-      .andWhere('notification.type = :type', { type: 'contact_submission' })
-      .andWhere('notification.relatedEntityType = :ret', { ret: 'contact' })
-      .andWhere('(notification.userId = :userId OR notification.userId IS NULL)', {
-        userId: context.userId,
-      })
-
-    represented = scopeToAgency(represented, context, 'notification')
-    const representedRaw = await represented.getRawOne<{ count?: string }>()
-    const representedCount = Number(representedRaw?.count || 0)
-
-    missingContactCount = Math.max(0, newContactsCount - representedCount)
+    const contactQuery = contactRepository
+      .createQueryBuilder('contact')
+      .where('contact.status = :status', { status: 'new' })
+    
+    // Scope to agency if not super admin
+    if (context.agencyId) {
+      // Contacts don't have agencyId, so we count all new contacts for all agencies
+      // In a multi-tenant setup, you might want to filter by agency
+    }
+    
+    unreadContactCount = await contactQuery.getCount()
   } catch (error) {
-    console.error('Error counting missing contact notifications:', error)
+    console.error('Error fetching unread contacts:', error)
   }
 
-  const unreadCount = unreadNotificationCount + missingContactCount
+  // Total unread count (notifications + contacts)
+  const totalUnreadCount = unreadNotificationCount + unreadContactCount
 
   return NextResponse.json({
     notifications,
-    unreadCount,
+    unreadCount: totalUnreadCount,
     unreadNotificationCount,
-    unreadContactCount: missingContactCount,
+    unreadContactCount,
   })
 }
 

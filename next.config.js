@@ -2,8 +2,6 @@
 const nextConfig = {
   experimental: {
     turbo: {},
-    // Prevent bundling huge optional deps (e.g. TypeORM drivers) into RSC/server build
-    serverComponentsExternalPackages: ['jsonwebtoken', 'bcryptjs', 'pg', 'typeorm'],
   },
   images: {
     domains: ['localhost', 'www.kayauto.ca', 'kayauto.ca'],
@@ -35,6 +33,8 @@ const nextConfig = {
   swcMinify: true,
   // Font optimization
   optimizeFonts: true,
+  // Server components external packages
+  serverComponentsExternalPackages: ['jsonwebtoken', 'bcryptjs', 'pg', 'typeorm'],
   webpack: (config, { isServer }) => {
     // Optimize bundle size
     if (!isServer) {

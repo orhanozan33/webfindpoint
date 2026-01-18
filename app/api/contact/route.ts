@@ -45,47 +45,35 @@ export async function POST(request: NextRequest) {
 
     // Create notification for admin (this is optional - don't fail if it errors)
     try {
-      let agencies = await agencyRepository.find()
-      if (agencies.length === 0) {
-        // If no agency exists yet, create a default one so notifications can be scoped properly
-        const defaultAgency = agencyRepository.create({
-          name: 'FindPoint Agency',
-          domain: 'findpoint.ca',
-          isActive: true,
-        })
-        agencies = [await agencyRepository.save(defaultAgency)]
-      }
+      const agencies = await agencyRepository.find({
+        where: { isActive: true },
+        take: 1,
+      })
 
       if (agencies.length > 0) {
-        const preview = `${email} adresinden yeni bir mesaj geldi: ${message.substring(0, 100)}${
-          message.length > 100 ? '...' : ''
-        }`
+        const agencyId = agencies[0].id
 
-        // Create one notification per agency so all agency admins get the alert (agency-scoped)
-        const notifications = agencies.map((agency) =>
-          notificationRepository.create({
-            agencyId: agency.id,
-            type: 'contact_submission',
-            title: `Yeni İletişim Mesajı: ${name}`,
-            message: preview,
-            link: '/admin/contacts',
-            severity: 'info',
-            relatedEntityType: 'contact',
-            relatedEntityId: contact.id,
-            isRead: false,
-          })
-        )
+        // Create notification
+        const notification = notificationRepository.create({
+          agencyId,
+          type: 'contact_submission',
+          title: `Yeni İletişim Mesajı: ${name}`,
+          message: `${email} adresinden yeni bir mesaj geldi: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`,
+          link: '/admin/contacts',
+          severity: 'info',
+          relatedEntityType: 'contact',
+          relatedEntityId: contact.id,
+          isRead: false,
+        })
 
-        await notificationRepository.save(notifications)
+        await notificationRepository.save(notification)
 
         // Send webhook notification (optional - don't fail if it errors)
-        // Use first agencyId as context if available
-        const agencyId = agencies[0].id
         try {
           await sendWebhookNotification({
             type: 'FORM',
             title: `Yeni İletişim Mesajı: ${name}`,
-            message: preview,
+            message: `${email} adresinden yeni bir mesaj geldi: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`,
             data: {
               link: '/admin/contacts',
               agencyId,
