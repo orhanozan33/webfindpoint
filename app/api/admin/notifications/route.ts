@@ -23,19 +23,31 @@ export async function GET(request: NextRequest) {
   const contactRepository = dataSource.getRepository(Contact)
   const agencyRepository = dataSource.getRepository(Agency)
 
+  // Ensure at least one agency exists (required for agency-scoped notifications)
+  let allAgencies = await agencyRepository.find({ select: ['id', 'isActive'] })
+  if (allAgencies.length === 0) {
+    const created = await agencyRepository.save(
+      agencyRepository.create({
+        name: 'FindPoint Agency',
+        domain: 'findpoint.ca',
+        isActive: true,
+      })
+    )
+    allAgencies = [{ id: created.id, isActive: created.isActive } as any]
+  }
+
   // Backfill: turn "new" contact submissions into notifications (if missing).
   // Important: notifications are scoped by agency for non-super-admin users, so we must
   // create/check per-agency to ensure every agency admin sees the alert.
   try {
     let targetAgencyIds: string[] = []
     if (context.role === 'super_admin') {
-      const agencies = await agencyRepository.find({ select: ['id'] })
-      targetAgencyIds = agencies.map((a) => a.id)
+      targetAgencyIds = allAgencies.map((a) => a.id)
     } else if (context.agencyId) {
       targetAgencyIds = [context.agencyId]
     } else {
-      const agency = await agencyRepository.findOne({ select: ['id'] })
-      if (agency?.id) targetAgencyIds = [agency.id]
+      const first = allAgencies[0]
+      if (first?.id) targetAgencyIds = [first.id]
     }
 
     if (targetAgencyIds.length > 0) {
@@ -114,11 +126,41 @@ export async function GET(request: NextRequest) {
       userId: context.userId,
     })
   unreadQuery = scopeToAgency(unreadQuery, context, 'notification')
-  const unreadCount = await unreadQuery.getCount()
+
+  const unreadNotificationCount = await unreadQuery.getCount()
+
+  // Count "new" contacts that still don't have an unread contact_submission notification in-scope.
+  // This ensures the bell badge increases when a message arrives even if a notification row failed to insert.
+  let missingContactCount = 0
+  try {
+    const newContactsCount = await contactRepository.count({ where: { status: 'new' } })
+
+    let represented = notificationRepository
+      .createQueryBuilder('notification')
+      .select('COUNT(DISTINCT notification.relatedEntityId)', 'count')
+      .where('notification.isRead = :isRead', { isRead: false })
+      .andWhere('notification.type = :type', { type: 'contact_submission' })
+      .andWhere('notification.relatedEntityType = :ret', { ret: 'contact' })
+      .andWhere('(notification.userId = :userId OR notification.userId IS NULL)', {
+        userId: context.userId,
+      })
+
+    represented = scopeToAgency(represented, context, 'notification')
+    const representedRaw = await represented.getRawOne<{ count?: string }>()
+    const representedCount = Number(representedRaw?.count || 0)
+
+    missingContactCount = Math.max(0, newContactsCount - representedCount)
+  } catch (error) {
+    console.error('Error counting missing contact notifications:', error)
+  }
+
+  const unreadCount = unreadNotificationCount + missingContactCount
 
   return NextResponse.json({
     notifications,
     unreadCount,
+    unreadNotificationCount,
+    unreadContactCount: missingContactCount,
   })
 }
 

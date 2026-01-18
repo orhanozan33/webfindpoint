@@ -2,14 +2,23 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Notification } from '@/entities/Notification'
+type UINotification = {
+  id: string
+  title: string
+  message?: string | null
+  link?: string | null
+  type?: string
+  severity?: string
+  isRead: boolean
+  createdAt: string | Date
+}
 
 interface NotificationCenterProps {
   agencyId?: string
 }
 
 export function NotificationCenter({ agencyId }: NotificationCenterProps) {
-  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [notifications, setNotifications] = useState<UINotification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -24,6 +33,11 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
   const fetchNotifications = async () => {
     try {
       const response = await fetch('/api/admin/notifications')
+      if (response.status === 401) {
+        setNotifications([])
+        setUnreadCount(0)
+        return
+      }
       if (response.ok) {
         const data = await response.json()
         setNotifications(data.notifications || [])

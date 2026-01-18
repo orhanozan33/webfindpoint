@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authorize } from '@/lib/auth/authorize'
 import { initializeDatabase } from '@/lib/db/database'
 import { Notification } from '@/entities/Notification'
+import { Contact } from '@/entities/Contact'
 import { scopeToAgency, getAgencyContext } from '@/lib/multi-tenant/scope'
 
 export async function POST(
@@ -34,6 +35,21 @@ export async function POST(
     notification.isRead = true
     notification.readAt = new Date()
     await notificationRepository.save(notification)
+
+    // If this notification is linked to a contact submission, mark that contact as read too
+    try {
+      if (notification.relatedEntityType === 'contact' && notification.relatedEntityId) {
+        const contactRepository = dataSource.getRepository(Contact)
+        const contact = await contactRepository.findOne({ where: { id: notification.relatedEntityId } })
+        if (contact && contact.status === 'new') {
+          contact.status = 'read'
+          await contactRepository.save(contact)
+        }
+      }
+    } catch (e) {
+      // Never fail notification read due to contact update
+      console.error('Error marking related contact as read:', e)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

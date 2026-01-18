@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authorize } from '@/lib/auth/authorize'
 import { initializeDatabase } from '@/lib/db/database'
 import { Notification } from '@/entities/Notification'
+import { Contact } from '@/entities/Contact'
 import { scopeToAgency, getAgencyContext } from '@/lib/multi-tenant/scope'
 
 export async function POST(request: NextRequest) {
@@ -32,6 +33,19 @@ export async function POST(request: NextRequest) {
     })
 
     await notificationRepository.save(notifications)
+
+    // Also mark all "new" contact submissions as read so the badge count matches reality
+    try {
+      const contactRepository = dataSource.getRepository(Contact)
+      await contactRepository
+        .createQueryBuilder()
+        .update()
+        .set({ status: 'read' })
+        .where('status = :status', { status: 'new' })
+        .execute()
+    } catch (e) {
+      console.error('Error marking all contacts as read:', e)
+    }
 
     return NextResponse.json({ success: true, count: notifications.length })
   } catch (error) {

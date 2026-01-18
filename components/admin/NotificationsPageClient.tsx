@@ -3,11 +3,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import type { Notification } from '@/entities/Notification'
+type UINotification = {
+  id: string
+  title: string
+  message?: string | null
+  link?: string | null
+  type?: string
+  severity?: string
+  isRead: boolean
+  createdAt: string | Date
+}
 
 export function NotificationsPageClient() {
   const router = useRouter()
-  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [notifications, setNotifications] = useState<UINotification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
@@ -16,6 +25,10 @@ export function NotificationsPageClient() {
   const fetchNotifications = async () => {
     try {
       const response = await fetch('/api/admin/notifications?limit=100')
+      if (response.status === 401) {
+        router.push('/admin/login')
+        return
+      }
       if (response.ok) {
         const data = await response.json()
         setNotifications(data.notifications || [])

@@ -3,14 +3,23 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { SessionPayload } from '@/lib/auth/session'
-import { Notification } from '@/entities/Notification'
+type UINotification = {
+  id: string
+  title: string
+  message?: string | null
+  link?: string | null
+  type?: string
+  severity?: string
+  isRead: boolean
+  createdAt: string | Date
+}
 
 interface NotificationPreviewProps {
   session: SessionPayload
 }
 
 export function NotificationPreview({ session }: NotificationPreviewProps) {
-  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [notifications, setNotifications] = useState<UINotification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
@@ -21,9 +30,15 @@ export function NotificationPreview({ session }: NotificationPreviewProps) {
   const fetchNotifications = async () => {
     try {
       const response = await fetch('/api/admin/notifications?limit=5')
+      if (response.status === 401) {
+        // Session expired / not authorized
+        setNotifications([])
+        setUnreadCount(0)
+        return
+      }
       if (response.ok) {
         const data = await response.json()
-        setNotifications(data.notifications || [])
+        setNotifications((data.notifications || []) as UINotification[])
         setUnreadCount(data.unreadCount || 0)
       }
     } catch (error) {
