@@ -22,6 +22,7 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string>('')
 
   useEffect(() => {
     fetchNotifications()
@@ -36,6 +37,12 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
       if (response.status === 401) {
         setNotifications([])
         setUnreadCount(0)
+        setError('Oturum süresi doldu. Tekrar giriş yapın.')
+        return
+      }
+      if (!response.ok) {
+        const text = await response.text()
+        setError(`Bildirimler yüklenemedi (HTTP ${response.status}). ${text.substring(0, 120)}`)
         return
       }
       if (response.ok) {
@@ -43,9 +50,11 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
         setNotifications(data.notifications || [])
         // Total unread count matches notifications list
         setUnreadCount(data.unreadCount || 0)
+        setError('')
       }
     } catch (error) {
       console.error('Error fetching notifications:', error)
+      setError('Bildirimler yüklenemedi. (Ağ/DB bağlantısı hatası)')
     } finally {
       setLoading(false)
     }
@@ -161,6 +170,10 @@ export function NotificationCenter({ agencyId }: NotificationCenterProps) {
                 {loading ? (
                   <div className="p-8 text-center text-neutral-500">
                     Yükleniyor...
+                  </div>
+                ) : error ? (
+                  <div className="p-4 text-sm text-red-800 bg-red-50 border-t border-red-100">
+                    {error}
                   </div>
                 ) : notifications.length === 0 ? (
                   <div className="p-8 text-center text-neutral-500">

@@ -22,6 +22,7 @@ export function NotificationPreview({ session }: NotificationPreviewProps) {
   const [notifications, setNotifications] = useState<UINotification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string>('')
 
   useEffect(() => {
     fetchNotifications()
@@ -34,15 +35,23 @@ export function NotificationPreview({ session }: NotificationPreviewProps) {
         // Session expired / not authorized
         setNotifications([])
         setUnreadCount(0)
+        setError('Oturum süresi doldu. Lütfen tekrar giriş yapın.')
+        return
+      }
+      if (!response.ok) {
+        const text = await response.text()
+        setError(`Bildirimler yüklenemedi (HTTP ${response.status}). ${text.substring(0, 120)}`)
         return
       }
       if (response.ok) {
         const data = await response.json()
         setNotifications((data.notifications || []) as UINotification[])
         setUnreadCount(data.unreadCount || 0)
+        setError('')
       }
     } catch (error) {
       console.error('Error fetching notifications:', error)
+      setError('Bildirimler yüklenemedi. (Ağ/DB bağlantısı hatası)')
     } finally {
       setLoading(false)
     }
@@ -75,6 +84,11 @@ export function NotificationPreview({ session }: NotificationPreviewProps) {
           </Link>
         </div>
       </div>
+      {error && (
+        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          {error}
+        </div>
+      )}
       {notifications.length === 0 ? (
         <p className="text-neutral-500 text-sm">Bildirim yok</p>
       ) : (

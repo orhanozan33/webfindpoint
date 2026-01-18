@@ -18,6 +18,7 @@ const ProjectsList = dynamicImport(() => import('@/components/admin/ProjectsList
 
 export default async function ProjectsPage() {
   let projects: any[] = []
+  let errorMessage: string | null = null
   
   try {
     const dataSource = await initializeDatabase()
@@ -54,6 +55,7 @@ export default async function ProjectsPage() {
     }))
   } catch (error) {
     console.error('Error fetching projects:', error)
+    errorMessage = error instanceof Error ? error.message : 'Unknown error'
   }
 
   return (
@@ -70,6 +72,12 @@ export default async function ProjectsPage() {
           + Proje Ekle
         </Link>
       </div>
+
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-800 text-sm">
+          Projeler yüklenemedi: {errorMessage}
+        </div>
+      )}
 
       <ProjectsList projects={projects} />
     </div>

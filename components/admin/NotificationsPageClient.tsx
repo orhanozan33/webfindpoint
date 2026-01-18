@@ -19,6 +19,7 @@ export function NotificationsPageClient() {
   const [notifications, setNotifications] = useState<UINotification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string>('')
 
   const hasUnread = useMemo(() => unreadCount > 0, [unreadCount])
 
@@ -29,13 +30,20 @@ export function NotificationsPageClient() {
         router.push('/admin/login')
         return
       }
+      if (!response.ok) {
+        const text = await response.text()
+        setError(`Bildirimler yüklenemedi (HTTP ${response.status}). ${text.substring(0, 120)}`)
+        return
+      }
       if (response.ok) {
         const data = await response.json()
         setNotifications(data.notifications || [])
         setUnreadCount(data.unreadCount || 0)
+        setError('')
       }
     } catch (error) {
       console.error('Error fetching notifications:', error)
+      setError('Bildirimler yüklenemedi. (Ağ/DB bağlantısı hatası)')
     } finally {
       setLoading(false)
     }
@@ -99,7 +107,13 @@ export function NotificationsPageClient() {
       </div>
 
       {notifications.length === 0 ? (
-        <div className="p-8 text-center text-neutral-500">Bildirim yok</div>
+        <div className="p-8 text-center">
+          {error ? (
+            <div className="text-red-700">{error}</div>
+          ) : (
+            <div className="text-neutral-500">Bildirim yok</div>
+          )}
+        </div>
       ) : (
         <div className="divide-y divide-neutral-200">
           {notifications.map((notification) => (
